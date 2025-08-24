@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Finanzas Imperio</title>
+    <title>Finanzas AsielNetwork</title>
     <style>
         body {
             font-family: DejaVu Sans, sans-serif;
@@ -25,9 +25,9 @@
 </head>
 <body>
     <div>
-        <h1>Imperio Global SAC - {{ $mes }} {{ $year }}</h1>
+        <h1>AsielNetwork - {{ $mes }} {{ $year }}</h1>
 
-        <h3 >Finanzas Imperio</h3>
+        <h3 >Finanzas AsielNetwork</h3>
 
         <h4 style="border-bottom: 1px solid #888888;">Resultados de Puntos Personales</h4>
 

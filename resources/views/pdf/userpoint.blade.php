@@ -53,7 +53,7 @@
 </head>
 <body>
     <main>
-        <h1>Imperio Global SAC - {{ $mes }} {{ $year }}</h1>
+        <h1>AsielNetwork - {{ $mes }} {{ $year }}</h1>
         <h3 >{{ $address }}</h3>
         <br><br>
         <table width="100%">
@@ -103,7 +103,7 @@
     </main>
     <footer>
         <hr>
-        <h2>Gerencia Comercial de Imperio Global</h2>
+        <h2>Gerencia Comercial de AsielNetwork</h2>
         <p style="text-align: center;">Ética de la Empresa, Cumple las reglas, protege tu código y asegura tu legado. ¡Tu esfuerzo vale la pena!</p>
     </footer>
 </body>

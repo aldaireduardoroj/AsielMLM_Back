@@ -22,7 +22,7 @@ use App\Models\PaymentProductOrder;
 use App\Models\PaymentProductOrderPoint;
 use App\Services\Flow\FlowPayment;
 use App\Services\Core\Calculator;
-
+use App\Services\Core\ConfirmPointService;
 
 use Exception;
 class PaymentOrderController extends BaseController
@@ -31,11 +31,13 @@ class PaymentOrderController extends BaseController
 
     private $flowPayment;
     private $calculator;
+    private $confirmPointService;
 
     public function __construct()
     {
         $this->flowPayment = new FlowPayment();
         $this->calculator = new Calculator();
+        $this->confirmPointService = new ConfirmPointService();
     }
 
     /**
@@ -71,6 +73,8 @@ class PaymentOrderController extends BaseController
             $sponsor = User::where("uuid" , $dataBody->sponsorId)->first();
 
             if( $sponsor == null ) return $this->sendError('Codigo de Patronisador no existe.');
+
+            if( $this->confirmPointService->maxChilds( $dataBody->sponsorId ) ) return $this->sendError('Tu patrocinador esta al limite de invitados.');
 
             $packCurrent = Pack::find( $dataBody->packId);
 
@@ -590,6 +594,8 @@ class PaymentOrderController extends BaseController
             $sponsor = User::where("uuid" , $dataBody->sponsorId)->first();
 
             if( $sponsor == null ) return $this->sendError('Codigo de Patronisador no existe.');
+
+            if( $this->confirmPointService->maxChilds( $dataBody->sponsorId ) ) return $this->sendError('Tu patrocinador esta al limite de invitados.');
 
             $packCurrent = Pack::find( $dataBody->packId);
 

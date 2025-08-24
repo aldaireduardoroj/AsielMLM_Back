@@ -22,7 +22,7 @@
 
   <tr>
     <td width="50%" height="13">
-        <img src="https://chayimworld.com/assets/images/logo%20horizontal%202.png" alt="" width="200px">
+        <img src="https://asielnetwork.com/assets/images/Logo.png" alt="" width="200px">
     </td>
 
     <td width="50%">

@@ -47,7 +47,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 use Carbon\Carbon;
 use Illuminate\Support\Str;
-
+use App\Services\Core\ConfirmPointService;
 
 use App\Mail\InivitedSponsorUser;
 
@@ -59,11 +59,13 @@ class UserController extends BaseController
     private $fileUpload;
     private $fileUploadPath;
     private $calculator;
+    private $confirmPointService;
 
     public function __construct() {
         $this->fileUpload = new FileUpload();
         $this->fileUploadPath = 'avatar';
         $this->calculator = new Calculator();
+        $this->confirmPointService = new ConfirmPointService();
     }
 
     public function auth()
