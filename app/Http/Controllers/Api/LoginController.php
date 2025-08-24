@@ -21,13 +21,13 @@ class LoginController extends BaseController
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email'    => 'required|email',
+            'dni'    => 'required',
             'password' => 'required'
         ]);
 
         if ($validator->fails()) return $this->sendError('Error de validacion.', $validator->errors(), 422);
 
-        $credentials = $request->only('email', 'password');
+        $credentials = $request->only('dni', 'password');
 
         if ( Auth::attempt($credentials) ) {
             $user             = Auth::user();
@@ -55,9 +55,10 @@ class LoginController extends BaseController
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name'     => 'required',
-            'email'    => 'required|email',
-            'password' => 'required|min:8'
+            'name'      => 'required',
+            'email'     => 'required|email',
+            'dni'       => 'required',
+            'password'  => 'required|min:8'
         ]);
 
         if ($validator->fails()) return $this->sendError('Error de validacion.', $validator->errors(), 422);
@@ -68,9 +69,14 @@ class LoginController extends BaseController
 
             if(  $userExists != null ) return $this->sendError( "Ese correo electronico ya existe" );
 
+            $userExistDni = User::where("dni" , $request->dni)->first();
+
+            if(  $userExistDni != null ) return $this->sendError( "Este DNI ya existe" );
+
             $user = User::create([
                 'name'     => $request->name,
                 'email'    => $request->email,
+                'dni'      => $request->dni,
                 'uuid'     => Str::random(4),
                 'password' => bcrypt($request->password)
             ]);
