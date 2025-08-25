@@ -50,6 +50,8 @@ use Illuminate\Support\Str;
 use App\Services\Core\ConfirmPointService;
 
 use App\Mail\InivitedSponsorUser;
+use App\Services\Core\CodeGenerator;
+use App\Models\VerificationCodeUser;
 
 
 class UserController extends BaseController
@@ -268,6 +270,7 @@ class UserController extends BaseController
             User::where("uuid" , $dataBody->userCode)->update(
                 array( "name" => $dataBody->userFullName )
             );
+
             $ischange = false;
 
             $paymentLogOld = PaymentLog::with(['paymentOrder'])->where("user_id" ,  $userUpdated->id )->where("state" , PaymentLog::PAGADO)->first();
@@ -307,6 +310,9 @@ class UserController extends BaseController
                     $orderId = uniqid( $packCurrent->title );
 
                     if( !empty($dataBody->sponsorNew) ){
+
+                        if( $this->confirmPointService->maxChilds( $dataBody->sponsorNew ) ) return $this->sendError('Tu patrocinador esta al limite de invitados.');
+                        
                         $_paymentOrder = PaymentOrder::create(
                             array(
                                 'currency' => "PEN",
@@ -1731,6 +1737,80 @@ class UserController extends BaseController
                 ->update(array(
                     "state" => false
                 ));
+
+            DB::commit();
+            return $this->sendResponse(1 , '');
+        }catch (Exception $e){
+            DB::rollBack();
+            return $this->sendError( $e->getMessage() , [] , 402 );
+        }
+    }
+
+    public function createUser(Request $request)
+    {
+        try {
+            $userId = Auth::id();
+            $userModel = User::with([ 'paymentActive' ])->find($userId);
+
+            DB::beginTransaction();
+            $dateNow = Carbon::now();
+            $dataBody = (object) $request->all();
+
+            $userExists = User::where("email" , $dataBody->email)->first();
+
+            if(  $userExists != null ) return $this->sendError( "Ese correo electronico ya existe" );
+
+            $userExistDni = User::where("dni" , $dataBody->dni)->first();
+
+            if(  $userExistDni != null ) return $this->sendError( "Este DNI ya existe" );
+
+            $sponsor = User::where("uuid" , $dataBody->sponsor)->first();
+
+            if( $sponsor == null ) return $this->sendError('Codigo de Patronisador no existe.');
+
+            if( $this->confirmPointService->maxChilds( $dataBody->sponsor ) ) return $this->sendError('Tu patrocinador esta al limite de invitados.');
+
+            $packCurrent = Pack::find($dataBody->plan);
+            if( $packCurrent == null ) return $this->sendError( "No se existe el plan seleccionado" );
+            $orderId = uniqid( $packCurrent->title );
+
+            $userCreated = User::create([
+                'name'     => $dataBody->name,
+                'email'    => $dataBody->email,
+                'dni'      => $dataBody->dni,
+                'uuid'     => Str::random(4),
+                'password' => bcrypt($dataBody->password)
+            ]);
+
+            $codeGenerator = new CodeGenerator();
+
+            $validation = VerificationCodeUser::create([
+                'user_id' => $userCreated->id,
+                'type'  => 1,
+                'code' => $codeGenerator->generate(),
+                "state" => true
+            ]);
+                        
+            $_paymentOrder = PaymentOrder::create(
+                array(
+                    'currency' => "PEN",
+                    'amount' => 0,
+                    'sponsor_code' => $dataBody->sponsor,
+                    'pack_id' => $dataBody->plan,
+                    "token" => $orderId
+                )
+            );
+
+            $this->confirmPoint($_paymentOrder , $userCreated , $packCurrent);
+
+            $_paymentLog = PaymentLog::create(
+                array(
+                    'payment_order_id' => $_paymentOrder->id,
+                    "confirm" => true,
+                    'user_id' => $userCreated->id,
+                    "state" => PaymentLog::PAGADO,
+                )
+            );
 
             DB::commit();
             return $this->sendResponse(1 , '');

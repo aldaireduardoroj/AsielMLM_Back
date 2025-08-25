@@ -3,6 +3,7 @@
 namespace App\Services\Core;
 
 use App\Models\PaymentOrderPoint;
+use App\Models\User;
 
 class ConfirmPointService
 {
@@ -10,6 +11,9 @@ class ConfirmPointService
 
     public function maxChilds($userCode)
     {
+        $user = User::where("uuid", $userCode)->first();
+        if( $user->is_admin ) return false;
+
         $paymentOrderPointCount = PaymentOrderPoint::select('user_code', 'sponsor_code')
             ->distinct()
             ->where("sponsor_code" , 'like', $userCode)

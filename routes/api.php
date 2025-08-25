@@ -94,6 +94,8 @@ Route::prefix('v1')->group(function () {
 
         Route::post('users/pdf-profile', [UserController::class, 'exportPdfProfile']);
 
+        Route::post('users/create-user', [UserController::class, 'createUser']);
+
         Route::post('payment/cash-pre', [PaymentOrderController::class, 'paymentCash']);
         Route::post('payment/cash-confirm', [PaymentOrderController::class, 'paymentCashConfirm']);
 
