@@ -69,14 +69,14 @@ class LoginController extends BaseController
 
             if(  $userExists != null ) return $this->sendError( "Ese correo electronico ya existe" );
 
-            $userExistDni = User::where("dni" , $request->dni)->first();
+            $userExistDni = User::where("uuid" , $request->dni)->first();
 
             if(  $userExistDni != null ) return $this->sendError( "Este DNI ya existe" );
 
             $user = User::create([
                 'name'     => $request->name,
                 'email'    => $request->email,
-                'uuid'     => $request->uuid,
+                'uuid'     => $request->dni,
                 'password' => bcrypt($request->password)
             ]);
 
