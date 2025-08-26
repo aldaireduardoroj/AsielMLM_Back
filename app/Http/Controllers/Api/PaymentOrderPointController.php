@@ -57,7 +57,7 @@ class PaymentOrderPointController extends BaseController
             $userModel->payment = $payments;
 
             // $paymentOrderPoint = PaymentOrderPoint::with(['paymentOrder.paymentLog','paymentOrder.pack'])->distinct()->get();
-            $paymentOrderPoint = PaymentOrderPoint::select('user_code','sponsor_code','type','payment')->with(['paymentOrder.paymentLog','paymentOrder.pack'])->where("type" , PaymentOrderPoint::COMPRA )->distinct()->get();
+            $paymentOrderPoint = PaymentOrderPoint::select('user_code','sponsor_code','type','payment')->with(['paymentOrder.paymentLog','paymentOrder.pack'])->where("type" , PaymentOrderPoint::COMPRA )->distinct()->orderBy('created_at', 'desc')->get();
             // 'sponsor.file', 'user.file'
 
             $paymentOrderPoints = PaymentOrderPoint::with(['paymentOrder.paymentLog'])->where('state' , true)->orderBy('created_at', 'desc')->get();
