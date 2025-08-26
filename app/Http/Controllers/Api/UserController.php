@@ -1760,7 +1760,7 @@ class UserController extends BaseController
 
             if(  $userExists != null ) return $this->sendError( "Ese correo electronico ya existe" );
 
-            $userExistDni = User::where("dni" , $dataBody->dni)->first();
+            $userExistDni = User::where("uuid" , $dataBody->dni)->first();
 
             if(  $userExistDni != null ) return $this->sendError( "Este DNI ya existe" );
 
@@ -1779,7 +1779,7 @@ class UserController extends BaseController
             $userCreated = User::create([
                 'name'     => $dataBody->name,
                 'email'    => $dataBody->email,
-                'uuid'     => $dataBody->uuid,
+                'uuid'     => $dataBody->dni,
                 'password' => bcrypt($dataBody->password)
             ]);
 
