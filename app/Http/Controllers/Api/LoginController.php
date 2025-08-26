@@ -21,13 +21,13 @@ class LoginController extends BaseController
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'dni'    => 'required',
+            'uuid'    => 'required',
             'password' => 'required'
         ]);
 
         if ($validator->fails()) return $this->sendError('Error de validacion.', $validator->errors(), 422);
 
-        $credentials = $request->only('dni', 'password');
+        $credentials = $request->only('uuid', 'password');
 
         if ( Auth::attempt($credentials) ) {
             $user             = Auth::user();
@@ -44,7 +44,7 @@ class LoginController extends BaseController
             $success['admin']  = $user->is_admin;
             $success['token'] = $_user->createToken('accessToken')->accessToken;
             $success['photo'] = $_user->file?->path;
-            $success['uuid'] =  $_user->dni;
+            $success['uuid'] =  $_user->uuid;
 
             return $this->sendResponse($success, 'You are successfully logged in.');
         } else {
