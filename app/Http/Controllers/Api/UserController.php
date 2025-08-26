@@ -1771,14 +1771,15 @@ class UserController extends BaseController
             if( $this->confirmPointService->maxChilds( $dataBody->sponsor ) ) return $this->sendError('Tu patrocinador esta al limite de invitados.');
 
             $packCurrent = Pack::find($dataBody->plan);
+
             if( $packCurrent == null ) return $this->sendError( "No se existe el plan seleccionado" );
+            
             $orderId = uniqid( $packCurrent->title );
 
             $userCreated = User::create([
                 'name'     => $dataBody->name,
                 'email'    => $dataBody->email,
-                'dni'      => $dataBody->dni,
-                'uuid'     => Str::random(4),
+                'uuid'     => $dataBody->uuid,
                 'password' => bcrypt($dataBody->password)
             ]);
 
@@ -2062,7 +2063,5 @@ class UserController extends BaseController
 
         return $a_paymentOrderPoint;
     }
-
-
 
 }

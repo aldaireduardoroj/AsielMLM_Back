@@ -21,13 +21,13 @@ class LoginController extends BaseController
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'dni'    => 'required',
+            'uuid'    => 'required',
             'password' => 'required'
         ]);
 
         if ($validator->fails()) return $this->sendError('Error de validacion.', $validator->errors(), 422);
 
-        $credentials = $request->only('dni', 'password');
+        $credentials = $request->only('uuid', 'password');
 
         if ( Auth::attempt($credentials) ) {
             $user             = Auth::user();
@@ -76,8 +76,7 @@ class LoginController extends BaseController
             $user = User::create([
                 'name'     => $request->name,
                 'email'    => $request->email,
-                'dni'      => $request->dni,
-                'uuid'     => Str::random(4),
+                'uuid'     => $request->uuid,
                 'password' => bcrypt($request->password)
             ]);
 
