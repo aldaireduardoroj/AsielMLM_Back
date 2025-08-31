@@ -311,13 +311,15 @@ class UserController extends BaseController
 
                     if( !empty($dataBody->sponsorNew) ){
 
-                        if( $this->confirmPointService->maxChilds( $dataBody->sponsorNew ) ) return $this->sendError('Tu patrocinador esta al limite de invitados.');
+                        // if( $this->confirmPointService->maxChilds( $dataBody->sponsorNew ) ) return $this->sendError('Tu patrocinador esta al limite de invitados.');
+
+                        $sponsorId = $this->confirmPointService->verifyChildNewSponsor( $dataBody->sponsorNew );
                         
                         $_paymentOrder = PaymentOrder::create(
                             array(
                                 'currency' => "PEN",
                                 'amount' => 0,
-                                'sponsor_code' => $dataBody->sponsorNew,
+                                'sponsor_code' => $sponsorId,
                                 'pack_id' => $packCurrent->id,
                                 "token" => $orderId
                             )
@@ -1768,7 +1770,9 @@ class UserController extends BaseController
 
             if( $sponsor == null ) return $this->sendError('Codigo de Patronisador no existe.');
 
-            if( $this->confirmPointService->maxChilds( $dataBody->sponsor ) ) return $this->sendError('Tu patrocinador esta al limite de invitados.');
+            // if( $this->confirmPointService->maxChilds( $dataBody->sponsor ) ) return $this->sendError('Tu patrocinador esta al limite de invitados.');
+
+            $sponsorId = $this->confirmPointService->verifyChildNewSponsor( $dataBody->sponsor );
 
             $packCurrent = Pack::find($dataBody->plan);
 
@@ -1796,7 +1800,7 @@ class UserController extends BaseController
                 array(
                     'currency' => "PEN",
                     'amount' => 0,
-                    'sponsor_code' => $dataBody->sponsor,
+                    'sponsor_code' => $sponsorId,
                     'pack_id' => $dataBody->plan,
                     "token" => $orderId
                 )
@@ -1908,7 +1912,7 @@ class UserController extends BaseController
                 $_paymentOrderPoint = (object) $_paymentOrderPoint;
                 if( $key == 0 ) continue;
                 $key++;
-                if( $key > 5 ) break;
+                if( $key > 3 ) break;
                 $level = $sponsorshipPoint->{'level'.($key)};
                 $point = floatval($packCurrent->points) * floatval($level) / 100;
                 PaymentOrderPoint::create(array(
@@ -1927,7 +1931,7 @@ class UserController extends BaseController
                 $_paymentOrderPoint = (object) $_paymentOrderPoint;
                 if( $key == 0 ) continue;
                 $key++;
-                if( $key > 7 ) break;
+                if( $key > 3 ) break;
                 $level = $residualPoint->{'level'.($key)};
 
                 $option = Option::where("option_key", 'point_residual')->first();
