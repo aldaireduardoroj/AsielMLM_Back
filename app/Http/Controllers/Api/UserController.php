@@ -389,7 +389,7 @@ class UserController extends BaseController
             if( !$userModel->is_admin ) return $this->sendError( "No tiene permisos ese usuario" );
             // $userDetail = UserDetail::where("user_id" , $user_id)->first();
 
-            $userList = User::with(['file'])->where('is_admin', false);
+            $userList = User::with(['file']);
 
             // if( $request->has('code') ) $muscleGroupList = $request->query('status') != NULL ? $muscleGroupList->where("status" , $request->query('status') ) : $muscleGroupList;
             if( $request->has('code') ) if( !empty($request->query('code')) ) $userList = $userList->where("uuid" , 'like' , $request->query('code') );
