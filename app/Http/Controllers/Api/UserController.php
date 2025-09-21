@@ -52,6 +52,7 @@ use App\Services\Core\ConfirmPointService;
 use App\Mail\InivitedSponsorUser;
 use App\Services\Core\CodeGenerator;
 use App\Models\VerificationCodeUser;
+use App\Models\VideoImageStory;
 
 
 class UserController extends BaseController
@@ -63,9 +64,16 @@ class UserController extends BaseController
     private $calculator;
     private $confirmPointService;
 
+    private $videoStoryUploadPath;
+    private $imageStoryUploadPath;
+    private $videoPreviewStoryUploadPath;
+
     public function __construct() {
         $this->fileUpload = new FileUpload();
         $this->fileUploadPath = 'avatar';
+        $this->videoStoryUploadPath = 'video-story';
+        $this->videoPreviewStoryUploadPath = 'video-preview-story';
+        $this->imageStoryUploadPath = 'image-story';
         $this->calculator = new Calculator();
         $this->confirmPointService = new ConfirmPointService();
     }
@@ -642,6 +650,7 @@ class UserController extends BaseController
             return $this->sendError( $e->getMessage() , [] , 402 );
         }
     }
+
     public function resetAllPoint(Request $request)
     {
         try {
@@ -1819,6 +1828,63 @@ class UserController extends BaseController
 
             DB::commit();
             return $this->sendResponse(1 , '');
+        }catch (Exception $e){
+            DB::rollBack();
+            return $this->sendError( $e->getMessage() , [] , 402 );
+        }
+    }
+
+    public function videoImageStory(Request $request)
+    {
+        try {
+            $userId = Auth::id();
+            $userModel = User::with([ 'paymentActive' ])->find($userId);
+
+            DB::beginTransaction();
+            $dateNow = Carbon::now();
+            $dataBody = (object) $request->all();
+
+            $fileId = 0;
+            $previewFileId = 0;
+
+            if($request->hasfile('file')) $fileId = $this->fileUpload->upload( $request->file('file') , $this->videoStoryUploadPath);
+            if($request->hasfile('preview')) $previewFileId = $this->fileUpload->upload( $request->file('preview') , $this->videoPreviewStoryUploadPath);
+
+            VideoImageStory::create(array(
+                'file_id' => $fileId,
+                'preview_id' => $previewFileId,
+                'user_id' => $userId,
+                'name' => $dataBody?->name ?? "",
+                'description' => $dataBody?->description ?? "",
+                'link' => $dataBody?->link ?? "",
+                'is_story' => $dataBody->story == '1' ?  true :  false
+            ));
+
+            $fileCreate = File::find($fileId);
+
+            DB::commit();
+            return $this->sendResponse( $fileCreate->path , '');
+        }catch (Exception $e){
+            DB::rollBack();
+            return $this->sendError( $e->getMessage() , [] , 402 );
+        }
+    }
+
+
+    public function getVideoImageStory(Request $request)
+    {
+        try { 
+            $userId = Auth::id();
+            DB::beginTransaction();
+
+            $optionLimit = Option::where("option_key" , $request->query('story') == 1 ? "max_videos" : "max_images" )->first();
+
+            $videoImageStories = VideoImageStory::with(['file','preview'])
+                ->where("state", true)
+                ->where("is_story" , $request->query('story') == 1 ? true : false )->limit($optionLimit->option_value)->orderBy('created_at', 'desc')->get();
+
+            DB::commit();
+            return $this->sendResponse( $videoImageStories , '');
         }catch (Exception $e){
             DB::rollBack();
             return $this->sendError( $e->getMessage() , [] , 402 );

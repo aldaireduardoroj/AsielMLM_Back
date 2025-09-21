@@ -99,6 +99,9 @@ Route::prefix('v1')->group(function () {
         Route::post('payment/cash-pre', [PaymentOrderController::class, 'paymentCash']);
         Route::post('payment/cash-confirm', [PaymentOrderController::class, 'paymentCashConfirm']);
 
+        Route::post('users/story/video-image', [UserController::class, 'videoImageStory']);
+        Route::get('users/story/video-image', [UserController::class, 'getVideoImageStory']);
+
         // inivted
         Route::post('users/generate-invited', [UserController::class, 'invitedLink']);
         Route::post('users/invited-email', [UserController::class, 'invitedLinkEmail']);
