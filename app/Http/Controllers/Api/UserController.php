@@ -1891,6 +1891,26 @@ class UserController extends BaseController
         }
     }
 
+    public function deleteVideoImageStory(Request $request)
+    {
+        try { 
+            $userId = Auth::id();
+            DB::beginTransaction();
+
+            $dataBody = (object) $request->all();
+
+            VideoImageStory::where("id" , $dataBody->id)->update(array(
+                "state" => false
+            ));
+
+            DB::commit();
+            return $this->sendResponse( 1 , 'delete');
+        }catch (Exception $e){
+            DB::rollBack();
+            return $this->sendError( $e->getMessage() , [] , 402 );
+        }
+    }
+
     private function confirmPoint( $paymentOrder , $userCurrent , $packCurrent, $reactiveAdmin = false)
     {
 

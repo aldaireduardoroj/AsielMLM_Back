@@ -101,6 +101,7 @@ Route::prefix('v1')->group(function () {
 
         Route::post('users/story/video-image', [UserController::class, 'videoImageStory']);
         Route::get('users/story/video-image', [UserController::class, 'getVideoImageStory']);
+        Route::post('users/story/video-image/delete', [UserController::class, 'deleteVideoImageStory']);
 
         // inivted
         Route::post('users/generate-invited', [UserController::class, 'invitedLink']);
