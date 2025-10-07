@@ -281,7 +281,7 @@ class UserController extends BaseController
 
             $ischange = false;
 
-            $paymentLogOld = PaymentLog::with(['paymentOrder'])->where("user_id" ,  $userUpdated->id )->where("state" , PaymentLog::PAGADO)->first();
+            $paymentLogOld = PaymentLog::with(['paymentOrder'])->where("user_id" ,  $userUpdated->id )->whereIn("state" , [ PaymentLog::PAGADO ,  PaymentLog::TERMINADO])->orderBy('created_at', 'desc')->first();
 
             $paymentLogs = PaymentLog::with(['paymentOrder'])
                 ->where( "user_id" ,  $user_id )
