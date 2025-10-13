@@ -1808,7 +1808,7 @@ class UserController extends BaseController
             $_paymentOrder = PaymentOrder::create(
                 array(
                     'currency' => "PEN",
-                    'amount' => 0,
+                    'amount' => $packCurrent->price,
                     'sponsor_code' => $sponsorId,
                     'pack_id' => $dataBody->plan,
                     "token" => $orderId
