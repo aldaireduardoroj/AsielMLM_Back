@@ -39,8 +39,13 @@ class ConfirmPointService
             ->get();
 
         if( $paymentOrderPoints != null ){
+            $sponsorBroather = "";
             foreach ($paymentOrderPoints as $key => $paymentOrder) {
                 if( !$this->maxChilds($paymentOrder->user_code) ) return $paymentOrder->user_code;
+            }
+
+            foreach ($paymentOrderPoints as $key => $paymentOrder){
+                if( !$this->maxChilds($paymentOrder->user_code) ) continue;
                 return $this->verifyChildNewSponsor($paymentOrder->user_code);
             }
         }

@@ -12,6 +12,9 @@ use App\Http\Controllers\Api\IzipayController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\PaymentProductOrderController;
 use App\Http\Controllers\Api\RangeController;
+
+use App\Http\Controllers\Api\CollectionRequestPatrocinioUserController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -109,6 +112,13 @@ Route::prefix('v1')->group(function () {
         Route::post('users/invited-confirm', [UserController::class, 'invitedConfirm']);
         Route::get('users/invited-user', [UserController::class, 'invitedUserCode']);
         Route::post('users/invited-remove', [UserController::class, 'invitedUserCodeRemove']);
+
+        //
+        Route::get('users/request-patrocinio/find-all', [CollectionRequestPatrocinioUserController::class, 'findAll']);
+        Route::post('users/request-patrocinio/generate', [CollectionRequestPatrocinioUserController::class, 'generate']);
+        Route::get('users/request-patrocinio/search', [CollectionRequestPatrocinioUserController::class, 'search']);
+        Route::post('users/request-patrocinio/approve', [CollectionRequestPatrocinioUserController::class, 'approve']);
+        Route::get('users/request-patrocinio/download', [CollectionRequestPatrocinioUserController::class, 'download']);
 
         // ********** ProductController
         Route::post('product', [ProductController::class, 'register']);
