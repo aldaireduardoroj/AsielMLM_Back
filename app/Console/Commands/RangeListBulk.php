@@ -53,6 +53,8 @@ class RangeListBulk extends Command
 
             $userModel = User::where("is_admin", 1)->first();
 
+            $userAll = User::where("is_admin", 0)->get();
+
             $listRange = Range::where("state", 1)->orderBy('order', 'ASC')->get();
 
             $paymentOrderPoints = PaymentOrderPoint::with(['paymentOrder.paymentLog'])->where('state' , true)->get();
@@ -64,6 +66,18 @@ class RangeListBulk extends Command
                 ->where("payment" , 1)->get();
 
             RangeUser::where("status", 1)->update(array("status" => 0));
+
+            foreach ($userAll as $keyUser => $user)
+            {
+                $rangeUser = RangeUser::where("user_id", $user->id )->first();
+                if( $rangeUser == null ){
+                    RangeUser::create(array(
+                        "user_id" => $user->id, "range_id" => 1, "status" => 1
+                    ));
+                }else{
+                    RangeUser::where("user_id", $user->id)->update(array("range_id" => 1, "status" => 1));
+                }
+            }
 
             $response = array();
 
@@ -123,72 +137,51 @@ class RangeListBulk extends Command
                         if( $_user->user->paymentActive != null ) $countChild++;
                     }
 
-                    if( $range->id == 1){
-                        // BRONCE = 1
-                        if($points->pointGroup >= 1000 && $userPoint->user->paymentActive != null){
-                            $this->createUpdateRangeUser( $userPoint->user->id , $range->id, true);
-                        }
-                        
-                    }else if( $range->id == 2){
-                        // PLATA = 2
-                        $countActive = $this->countTreeRangeDirect($userPoint->user->uuid, 1);
-                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 2 && ( $points->pointGroup >= 3000 && $userPoint->user->paymentActive != null) ) );
+                    if( $range->id == 2){
+
+                        $countActive = $this->createActiveDirect($userPoint->user->uuid);
+                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 2 && ( $points->pointGroup >= 1200 && $userPoint->user->paymentActive != null) ) );
 
                     }else if( $range->id == 3){
-                        // ORO = 3
+
                         $countActive = $this->countTreeRangeDirect($userPoint->user->uuid, 2);
-                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 3 && ( $points->pointGroup >= 12000 && $userPoint->user->paymentActive != null) ) );
+                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 1 && ( $points->pointGroup >= 3000 && $userPoint->user->paymentActive != null) ) );
 
                     }else if( $range->id == 4){
                         // JADE = 4
-                        $countActive = $this->countTreeRangeDirect($userPoint->user->uuid, 3); //oro
-                        $countActive2 = $this->countTreeRangeDirect($userPoint->user->uuid, 2); //plata
-                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive2 >= 3 && $countActive >= 1 && ( $points->pointGroup >= 24000 && $userPoint->user->paymentActive != null) ) );
-
-                    }else if( $range->id == 9){
-                        // RUBI = 9
-                        $countActive = $this->countTreeRangeDirect($userPoint->user->uuid, 3); // oro
-                        $countActive2 = $this->countTreeRangeDirect($userPoint->user->uuid, 4); // jade
-                        $countActive3 = $this->countTreeRangeDirect($userPoint->user->uuid, 2); //plata
-                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 1 && $countActive2 >= 1 && $countActive3 >= 2 && ( $points->pointGroup >= 68000 && $userPoint->user->paymentActive != null) ) );
+                        $countActive = $this->createActiveDirect($userPoint->user->uuid);
+                        $countActive2 = $this->countTreeRangeDirect($userPoint->user->uuid, 3); //plata
+                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 3 && $countActive2 >= 1 && ( $points->pointGroup >= 6000 && $userPoint->user->paymentActive != null) ) );
 
                     }else if( $range->id == 5){
-                        // DIAMANTE = 5
-                        $countActive2 = $this->countTreeRangeDirect($userPoint->user->uuid, 2); // plata
-                        $countActive3 = $this->countTreeRangeDirect($userPoint->user->uuid, 3); // ORO
-                        $countActive9 = $this->countTreeRangeDirect($userPoint->user->uuid, 9); // rubi
-                        $countActive4 = $this->countTreeRangeDirect($userPoint->user->uuid, 4); // jade
-                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive2 >= 1 && $countActive3 >= 2 && $countActive9 >= 1 && $countActive4 >= 1 && ( $points->pointGroup >= 100000 && $userPoint->user->paymentActive != null) ) );
+                        // RUBI = 9
+                        $countActive = $this->createActiveDirect($userPoint->user->uuid);
+                        $countActive2 = $this->countTreeRangeDirect($userPoint->user->uuid, 4); //plata
+                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 4 && $countActive2 >= 1 && ( $points->pointGroup >= 12000 && $userPoint->user->paymentActive != null) ) );
 
                     }else if( $range->id == 6){
-                        // DOBLE DIAMANTE = 6
-                        $countActive2 = $this->countTreeRangeDirect($userPoint->user->uuid, 2); // plata
-                        $countActive9 = $this->countTreeRangeDirect($userPoint->user->uuid, 9); // rubi
-                        $countActive3 = $this->countTreeRangeDirect($userPoint->user->uuid, 3); // oro
-                        $countActive4 = $this->countTreeRangeDirect($userPoint->user->uuid, 4); // jade
-                        $countActive5 = $this->countTreeRangeDirect($userPoint->user->uuid, 5); // diamante
-                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ( $countActive9 >= 1 && $countActive3 >= 3 && $countActive4 >= 2 && $countActive5 >= 1 && ( $points->pointGroup >= 320000 && $userPoint->user->paymentActive != null) ) );
+                        // DIAMANTE = 5
+                        $countActive = $this->createActiveDirect($userPoint->user->uuid);
+                        $countActive2 = $this->countTreeRangeDirect($userPoint->user->uuid, 5); //plata
+                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 4 && $countActive2 >= 1 && ( $points->pointGroup >= 30000 && $userPoint->user->paymentActive != null) ) );
 
                     }else if( $range->id == 7){
-                        // TRIPLE DIAMANTE = 7
-                        $countActive2 = $this->countTreeRangeDirect($userPoint->user->uuid, 2); // plata
-                        $countActive9 = $this->countTreeRangeDirect($userPoint->user->uuid, 9); // rubi
-                        $countActive3 = $this->countTreeRangeDirect($userPoint->user->uuid, 3); // oro
-                        $countActive4 = $this->countTreeRangeDirect($userPoint->user->uuid, 4); // jade
-                        $countActive5 = $this->countTreeRangeDirect($userPoint->user->uuid, 5); // diamante
-                        $countActive6 = $this->countTreeRangeDirect($userPoint->user->uuid, 6); // DOBLE DIAMANTE
-                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ( $countActive9 >= 2 && $countActive3 >= 1 && $countActive4 >= 3 && $countActive5 >= 2 && $countActive6 >= 0 && ( $points->pointGroup >= 600000 && $userPoint->user->paymentActive != null) ) );
+                        // DOBLE DIAMANTE = 6
+                        $countActive = $this->createActiveDirect($userPoint->user->uuid);
+                        $countActive2 = $this->countTreeRangeDirect($userPoint->user->uuid, 6); //plata
+                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 5 && $countActive2 >= 1 && ( $points->pointGroup >= 60000 && $userPoint->user->paymentActive != null) ) );
 
                     }else if( $range->id == 8){
+                        // TRIPLE DIAMANTE = 7
+                        $countActive = $this->createActiveDirect($userPoint->user->uuid);
+                        $countActive2 = $this->countTreeRangeDirect($userPoint->user->uuid, 7); //plata
+                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 6 && $countActive2 >= 1 && ( $points->pointGroup >= 100000 && $userPoint->user->paymentActive != null) ) );
+
+                    }else if( $range->id == 9){
                         // IMPERIO = 8
-                        $countActive2 = $this->countTreeRangeDirect($userPoint->user->uuid, 2); // plata
-                        $countActive9 = $this->countTreeRangeDirect($userPoint->user->uuid, 9); // rubi
-                        $countActive3 = $this->countTreeRangeDirect($userPoint->user->uuid, 3); // oro
-                        $countActive4 = $this->countTreeRangeDirect($userPoint->user->uuid, 4); // jade
-                        $countActive5 = $this->countTreeRangeDirect($userPoint->user->uuid, 5); // diamante
-                        $countActive6 = $this->countTreeRangeDirect($userPoint->user->uuid, 6); // DOBLE DIAMANTE
-                        $countActive7 = $this->countTreeRangeDirect($userPoint->user->uuid, 7); // TRIPLE DIAMANTE
-                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ( $countActive2 >= 2 && $countActive9 >= 1 && $countActive3 >= 1 && $countActive4 >= 1 && $countActive5 >= 1 && $countActive6 >= 1 && $countActive7 >= 1 && ( $userPoint->user->paymentActive != null) ) );
+                        $countActive = $this->createActiveDirect($userPoint->user->uuid);
+                        $countActive2 = $this->countTreeRangeDirect($userPoint->user->uuid, 7); //plata
+                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 6 && ( $points->pointGroup >= 125700 && $userPoint->user->paymentActive != null) ) );
 
                     }
                 }
@@ -240,15 +233,15 @@ class RangeListBulk extends Command
 
                         if( $point == null ){
                             if( $userModel->is_admin ) continue;
-                            PaymentOrderPoint::create(array(
-                                'payment_order_id' => $userPoint->user->paymentActive->payment_order_id,
-                                'user_code' => $userPoint->user_code,
-                                'sponsor_code' => $userPoint->sponsor_code,
-                                'point' => $pointInfinito,
-                                'payment' => false,
-                                'type' => PaymentOrderPoint::INFINITO,
-                                'user_id' => $userModel->id
-                            ));
+                            // PaymentOrderPoint::create(array(
+                            //     'payment_order_id' => $userPoint->user->paymentActive->payment_order_id,
+                            //     'user_code' => $userPoint->user_code,
+                            //     'sponsor_code' => $userPoint->sponsor_code,
+                            //     'point' => $pointInfinito,
+                            //     'payment' => false,
+                            //     'type' => PaymentOrderPoint::INFINITO,
+                            //     'user_id' => $userModel->id
+                            // ));
                         }
                     }
 
@@ -417,5 +410,23 @@ class RangeListBulk extends Command
         }
 
         return $isRangeMax;
+    }
+
+    private function createActiveDirect($userCode)
+    {
+        $paymentOrderPoints = PaymentOrderPoint::with(['user.paymentActive'])->where("sponsor_code" , 'like', $userCode)
+        ->whereIn("type", [PaymentOrderPoint::PATROCINIO])
+        ->where("payment" , 1)->get();
+
+        $count = 0;
+
+        foreach ($paymentOrderPoints as $key => $paymentOrderPoint)
+        {
+            if( $paymentOrderPoint->user->paymentActive != null){
+                $count++;
+            }
+        }
+
+        return $count;
     }
 }
