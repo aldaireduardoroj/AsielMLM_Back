@@ -34,4 +34,9 @@ class Product extends Model
     {
         return $this->hasOne(File::class , 'id' , 'file');
     }
+
+    public function discounts()
+    {
+        return $this->hasMany(PackProductPercentage::class, 'product_id', 'id');
+    }
 }

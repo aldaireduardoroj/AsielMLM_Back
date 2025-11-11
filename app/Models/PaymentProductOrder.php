@@ -15,6 +15,8 @@ class PaymentProductOrder extends Model
     const ERROR = 5;
     const TERMINADO = 6;
 
+    const PREORDER = 9;
+
     use HasFactory, Uuid;
 
     public $incrementing = false;
@@ -35,6 +37,7 @@ class PaymentProductOrder extends Model
         'state',
         'type',
         'token',
+        'file'
     ];
 
     public function user()
@@ -55,4 +58,9 @@ class PaymentProductOrder extends Model
     protected $hidden = [
         'user_id',
     ];
+
+    public function fileImage()
+    {
+        return $this->hasOne(File::class , 'id' , 'file');
+    }
 }

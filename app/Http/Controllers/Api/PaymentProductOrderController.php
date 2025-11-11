@@ -29,7 +29,7 @@ use App\Services\Core\Calculator;
 use App\Models\AfiliadosPoint;
 use App\Models\SponsorshipPoint;
 use App\Models\ResidualPoint;
-
+use App\Services\Core\FileUpload;
 
 class PaymentProductOrderController extends BaseController
 {
@@ -37,12 +37,17 @@ class PaymentProductOrderController extends BaseController
 
     private $flowPayment;
     private $calculator;
+    private $fileUpload;
+    private $fileUploadPath;
 
     public function __construct()
     {
         $this->flowPayment = new FlowPayment();
         $this->calculator = new Calculator();
+        $this->fileUpload = new FileUpload();
+        $this->fileUploadPath = 'voucher-product';
     }
+
 
     public function findAll(Request $request)
     {
@@ -393,7 +398,7 @@ class PaymentProductOrderController extends BaseController
                 array_push($productIds , $product->product);
             }
 
-            $productList = Product::whereIn('id' , $productIds)->get();
+            $productList = Product::with(['discounts'])->whereIn('id' , $productIds)->get();
 
             $productListCreate = array();
 
@@ -753,7 +758,7 @@ class PaymentProductOrderController extends BaseController
                 array_push($productIds , $product->product);
             }
 
-            $productList = Product::whereIn('id' , $productIds)->get();
+            $productList = Product::with(['discounts'])->whereIn('id' , $productIds)->get();
 
             $productListCreate = array();
 
@@ -865,6 +870,251 @@ class PaymentProductOrderController extends BaseController
         } catch (Exception $e) {
             DB::rollBack();
             return $this->sendError( $e->getMessage() );
+        }
+    }
+
+    public function paymentCash( Request $request )
+    {
+        $validator = Validator::make( $request->all() , [
+            'phone'                 => 'required',
+            'address'                 => 'required',
+            'details'               => 'required',
+            'file'               => 'required',
+        ]);
+
+        if ($validator->fails()) return $this->sendError('Error de validacion.', $validator->errors(), 422);
+
+        try {
+            $dataBody = (object) $request->all();
+            DB::beginTransaction();
+            $userId = Auth::id();
+            $userCurrent = User::find($userId);
+            // if(  $userCurrent->is_admin ) return $this->sendError('Este Usuario no puede realizar una compra');
+            $packId = null;
+            $totalAmount = 0;
+            $totalPoints = 0;
+            $discount = 0;
+
+            $paymentLog = PaymentLog::where( "user_id" , $userId )
+                ->where("confirm" , true)->whereIn("state" , [PaymentLog::PAGADO, PaymentLog::TERMINADO])->first();
+
+            if( $paymentLog != null ){
+                $PaymentOrder = PaymentOrder::find( $paymentLog->payment_order_id );
+                $packId = $PaymentOrder->pack_id;
+
+                $packCurrent = Pack::find($packId);
+                $discount = floatval( $packCurrent->discount );
+            }
+
+            $productIds = array();
+
+            $dataBody->details = json_decode($dataBody->details);
+
+            if( count( $dataBody->details ) == 0 ) return $this->sendError( "No se encuentra productos" );
+
+            foreach( $dataBody->details as $key => $product ) {
+                $product = (object) $product;
+                array_push($productIds , $product->product);
+            }
+
+            $productList = Product::with(['discounts'])->whereIn('id' , $productIds)->get();
+
+            $productListCreate = array();
+
+            foreach( $productList as $key => $product ) {
+                $keyDetail = array_search( $product->id , array_column($dataBody->details , 'product')  );
+                $productDetail = (object) $dataBody->details[$keyDetail];
+
+                $totalAmount += ( $product->price *  $productDetail->quantity );
+                if( $packId != null ){
+                    $productPointPack = ProductPointPack::where("product_id" , $product->id )->where("pack_id" , $packId)->first();
+                    if(  $productPointPack == null ) $totalPoints += 0;
+                    else{
+                        $totalPoints += $productPointPack->point *  $productDetail->quantity;
+                    }
+                }else{
+                    $totalPoints += 0;
+                }
+
+            }
+
+            if( $discount > 0 ){
+                $totalAmount = $totalAmount * (100 - $discount) / 100;
+            }
+
+            $fileId = 0;
+
+            if($request->hasfile('file')) $fileId = $this->fileUpload->upload( $request->file('file') , $this->fileUploadPath);
+
+            $paymentProductOrder = PaymentProductOrder::create(
+                array(
+                    'currency'  => 'PEN',
+                    'amount'    => $totalAmount,
+                    'discount'  => $discount,
+                    'points'    => $totalPoints,
+                    'user_id'   => $userId,
+                    'pack_id'   => $packId,
+                    'phone'     => $dataBody->phone,
+                    'address'   => $dataBody->address,
+                    'state'     => PaymentProductOrder::PREORDER,
+                    'type'      => self::PAYMENT_ADMIN,
+                    'token'     => 'NOT_FOUND',
+                    'file'      => $fileId
+                )
+            );
+
+            foreach( $productList as $key => $product ) {
+                $keyDetail = array_search( $product->id , array_column($dataBody->details , 'product')  );
+                $productDetail = (object) $dataBody->details[$keyDetail];
+                $price = $product->price;
+                $subtotal = $product->price * $productDetail->quantity;
+                $_points = 0;
+                $productPointPack = ProductPointPack::where("product_id" , $product->id )->where("pack_id" , $packId)->first();
+                if(  $productPointPack != null ) $_points = $productPointPack->point *  $productDetail->quantity;
+
+
+                if( $discount > 0 ){
+                    $price = $price * (100 - $discount) /100;
+                    $subtotal = $subtotal * (100 - $discount) /100;
+                }
+                array_push(
+                    $productListCreate,
+                    array(
+                        'payment_product_order_id'  => $paymentProductOrder->id,
+                        'product_id'                => $product->id,
+                        'product_title'             => $product->title,
+                        'quantity'                  => $productDetail->quantity,
+                        'price'                     => $price,
+                        'subtotal'                  => $subtotal,
+                        'points'                    => $_points,
+                        'created_at'                => now(),
+                        'updated_at'                => now(),
+                    )
+                );
+            }
+
+            PaymentProductOrderDetail::insert($productListCreate);
+
+            DB::commit();
+            return $this->sendResponse( array() , 'paymentCash');
+        } catch (Exception $e) {
+            DB::rollBack();
+            return $this->sendError( $e->getMessage() , [] , 402 );
+        }
+    }
+
+    public function paymentCashConfirm( Request $request )
+    {
+        $validator = Validator::make( $request->all() , [
+            'paymentId'    => 'required',
+        ]);
+
+        if ($validator->fails()) return $this->sendError('Error de validacion.', $validator->errors(), 422);
+
+        try {
+            DB::beginTransaction();
+            $dataBody = (object) $request->all();
+            $userId = Auth::id();
+
+            $paymentProductOrder = PaymentProductOrder::where("id", $dataBody->paymentId)->where("state", PaymentProductOrder::PREORDER)->first();
+
+            if( $paymentProductOrder == null ) return $this->sendError('No se encontro orden de pago.');
+
+            PaymentProductOrder::where("id" , $paymentProductOrder->id )->update(
+                array(
+                    "state" => PaymentLog::PAGADO,
+                )
+            );
+
+            PaymentProductOrderPoint::create(
+                array(
+                    'payment_product_order_id'  => $paymentProductOrder->id,
+                    'user_id'                   => $paymentProductOrder->user_id,
+                    'points'                    => $paymentProductOrder->points,
+                    'state'                     => true
+                )
+            );
+
+            $paymentProductOrderPoints = PaymentProductOrderPoint::where("user_id" , $paymentProductOrder->user_id)->where("state" , true)->get();
+
+            $personalPoint = 0;
+            foreach ($paymentProductOrderPoints as $key => $paymentProductOrderPoint) {
+                $personalPoint = $personalPoint + $paymentProductOrderPoint->points;
+            }
+
+            $maxPointsProduct = Option::where("option_key" , "max_points_product")->first();
+
+            $userCurrent = User::find( $paymentProductOrder->user_id );
+
+            if( $personalPoint >= floatval($maxPointsProduct->option_value) )
+            {
+
+                $this->confirmPointAfiliado( $userCurrent, $paymentProductOrder->points , $personalPoint);
+
+                $paymentLog = PaymentLog::with(['paymentOrder.pack'])
+                    ->where( "user_id" ,  $paymentProductOrder->user_id )
+                    
+                    ->orderBy('created_at', 'desc')
+                    ->first();
+
+                if( $paymentLog != null ){
+
+                    if( $paymentLog->state  == PaymentLog::TERMINADO ){
+                        // === REACTIVAR EL PLAN
+                        $_paymentOrder = PaymentOrder::find( $paymentLog->payment_order_id );
+
+                        $paymentOrder = PaymentOrder::create(
+                            array(
+                                'currency' => "PEN",
+                                'amount' => 0,
+                                'sponsor_code' => $_paymentOrder->sponsor_code,
+                                'pack_id' => $_paymentOrder->pack_id,
+                            )
+                        );
+
+                        $_paymentLog = PaymentLog::create(
+                            array(
+                                'payment_order_id' => $paymentOrder->id,
+                                "confirm" => true,
+                                'user_id' => $paymentProductOrder->user_id,
+                                "state" => PaymentLog::PAGADO,
+                            )
+                        );
+
+                        $__paymentLog = PaymentLog::with(['paymentOrder.pack'])
+                        ->where( "id" ,  $_paymentLog ->id )
+                        
+                        ->orderBy('created_at', 'desc')
+                        ->first();
+
+                        $this->confirmPoint($paymentOrder , $userCurrent , $__paymentLog->paymentOrder->pack, true);
+
+                        $option = Option::where("option_key", 'reactive_point')->first();
+
+                        // desabilitado - 15-06
+
+                        // PaymentOrderPoint::create(array(
+                        //     'payment_order_id' => $paymentOrder->id,
+                        //     'user_code' => $userCurrent->uuid,
+                        //     'sponsor_code' => $paymentOrder->sponsor_code,
+                        //     'point' => floatval($option->option_value ?? "200"),
+                        //     'payment' => true,
+                        //     'type' => PaymentOrderPoint::COMPRA,
+                        //     'user_id' => $userCurrent->id
+                        // ));
+                    }
+                    
+                }
+
+            }
+
+            DB::commit();
+
+            return $this->sendResponse( array() , 'paymentCashConfirm');
+
+        } catch (Exception $e) {
+            DB::rollBack();
+            return $this->sendError( $e->getMessage() , [] , 402 );
         }
     }
 

@@ -147,7 +147,7 @@ class ProductController extends BaseController
     public function search()
     {
         try {
-            $productList = Product::with(['file_image'])->orderBy('created_at', 'desc')->get();
+            $productList = Product::with(['file_image','discounts'])->orderBy('created_at', 'desc')->get();
 
             return $this->sendResponse( $productList , 'Lista');
         } catch (Exception $e) {

@@ -39,7 +39,8 @@ class PaymentLog extends Model
         'state',
         'message',
         'log',
-        'confirm'
+        'confirm',
+        'file_id'
     ];
 
     protected $hidden = [
@@ -51,5 +52,15 @@ class PaymentLog extends Model
     public function paymentOrder()
     {
         return $this->hasOne(PaymentOrder::class , 'id' , 'payment_order_id');
+    }
+
+    public function file()
+    {
+        return $this->hasOne(File::class , 'id' , 'file_id');
+    }
+
+    public function fileImage()
+    {
+        return $this->hasOne(File::class , 'id' , 'file_id');
     }
 }

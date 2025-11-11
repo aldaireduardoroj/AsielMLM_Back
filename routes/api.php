@@ -102,6 +102,9 @@ Route::prefix('v1')->group(function () {
         Route::post('payment/cash-pre', [PaymentOrderController::class, 'paymentCash']);
         Route::post('payment/cash-confirm', [PaymentOrderController::class, 'paymentCashConfirm']);
 
+        Route::post('payment-product/cash-pre', [PaymentProductOrderController::class, 'paymentCash']);
+        Route::post('payment-product/cash-confirm', [PaymentProductOrderController::class, 'paymentCashConfirm']);
+
         Route::post('users/story/video-image', [UserController::class, 'videoImageStory']);
         Route::get('users/story/video-image', [UserController::class, 'getVideoImageStory']);
         Route::post('users/story/video-image/delete', [UserController::class, 'deleteVideoImageStory']);

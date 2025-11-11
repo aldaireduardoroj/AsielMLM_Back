@@ -23,6 +23,7 @@ use App\Models\PaymentProductOrderPoint;
 use App\Services\Flow\FlowPayment;
 use App\Services\Core\Calculator;
 use App\Services\Core\ConfirmPointService;
+use App\Services\Core\FileUpload;
 
 use Exception;
 class PaymentOrderController extends BaseController
@@ -32,12 +33,16 @@ class PaymentOrderController extends BaseController
     private $flowPayment;
     private $calculator;
     private $confirmPointService;
+    private $fileUpload;
+    private $fileUploadPath;
 
     public function __construct()
     {
         $this->flowPayment = new FlowPayment();
         $this->calculator = new Calculator();
         $this->confirmPointService = new ConfirmPointService();
+        $this->fileUpload = new FileUpload();
+        $this->fileUploadPath = 'voucher';
     }
 
     /**
@@ -872,6 +877,7 @@ class PaymentOrderController extends BaseController
         $validator = Validator::make( $request->all() , [
             'packId' => 'required|exists:packs,id',
             'sponsorId'    => 'required',
+            'file' => 'required|file'
         ]);
 
         if ($validator->fails()) return $this->sendError('Error de validacion.', $validator->errors(), 422);
@@ -907,12 +913,17 @@ class PaymentOrderController extends BaseController
                 )
             );
 
+            $fileId = 0;
+
+            if($request->hasfile('file')) $fileId = $this->fileUpload->upload( $request->file('file') , $this->fileUploadPath);
+
             $paymentLog = PaymentLog::create(
                 array(
                     'payment_order_id' => $paymentOrder->id,
                     "confirm" => false,
                     'user_id' => $userId,
                     "state" => PaymentLog::PREORDER,
+                    "file_id" => $fileId
                 )
             );
 
