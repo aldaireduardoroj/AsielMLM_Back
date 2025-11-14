@@ -154,7 +154,7 @@ class RangeListBulk extends Command
                         array_push( $response , array(
                             "user" => $userPoint->user->id,
                             "range" => 2,
-                            "state" => $userPoint->user->id , $range->id, ($countActive >= 2 && ( $points->pointGroup >= 1200 && $userPoint->user->paymentActive != null) )
+                            "state" => $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 2 && ( $points->pointGroup >= 1200 && $userPoint->user->paymentActive != null) ) )
                         ) );
 
                     }else if( $range->id == 3){
