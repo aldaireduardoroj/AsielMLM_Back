@@ -431,7 +431,7 @@ class RangeListBulk extends Command
 
     private function createActiveDirect($userCode)
     {
-        $paymentOrderPoints = PaymentOrderPoint::with(['user.paymentActive'])->where("sponsor_code" , 'like', $userCode)
+        $paymentOrderPoints = PaymentOrderPoint::with([])->where("sponsor_code" , 'like', $userCode)
         ->whereIn("type", [PaymentOrderPoint::PATROCINIO])
         ->where("payment" , 1)->get();
 
@@ -439,7 +439,8 @@ class RangeListBulk extends Command
 
         foreach ($paymentOrderPoints as $key => $paymentOrderPoint)
         {
-            if( $paymentOrderPoint->user->paymentActive != null){
+            $_user = User::with(['paymentActive'])->where("uuid", $paymentOrderPoint->user_code )->first();
+            if( $_user->paymentActive != null){
                 $count++;
             }
         }
