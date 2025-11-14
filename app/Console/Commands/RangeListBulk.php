@@ -358,31 +358,31 @@ class RangeListBulk extends Command
     private function createUpdateRangeUser( $userId, $rangeId, $active)
     {
         if( $active ){
-            $orders = PaymentLog::where("user_id", $userId)->where( "state", PaymentLog::TERMINADO)->count();
-            if( $orders > 0 ){
-                $rangeUser = RangeUser::where("user_id", $userId )->first();
-                if( $rangeUser == null ){
-                    RangeUser::create(array(
-                        "user_id" => $userId, "range_id" => $rangeId, "status" => 1
-                    ));
-                }else{
-                    if( $rangeUser->range_id != $rangeId ){
-                        $generatonialResidualPoint = GeneratonialResidualPoints::where("user_id", $userId)->where("range_id", $rangeUser->range_id)->first();
-                        $rangeResidualPoint = RangeResidualPoints::where("range_id", $rangeId)->first();
+            // $orders = PaymentLog::where("user_id", $userId)->where( "state", PaymentLog::TERMINADO)->count();
+            // if( $orders > 0 ){
+                
+            // }
+            $rangeUser = RangeUser::where("user_id", $userId )->first();
+            if( $rangeUser == null ){
+                RangeUser::create(array(
+                    "user_id" => $userId, "range_id" => $rangeId, "status" => 1
+                ));
+            }else{
+                if( $rangeUser->range_id != $rangeId ){
+                    $generatonialResidualPoint = GeneratonialResidualPoints::where("user_id", $userId)->where("range_id", $rangeUser->range_id)->first();
+                    $rangeResidualPoint = RangeResidualPoints::where("range_id", $rangeId)->first();
 
-                        $percentage = $rangeResidualPoint->{'level'.($generatonialResidualPoint->level)};
+                    $percentage = $rangeResidualPoint->{'level'.($generatonialResidualPoint->level)};
 
-                        PaymentOrderPoint::where("id", $generatonialResidualPoint->point_id)->update(
-                            array("point" => ( $generatonialResidualPoint->points * $percentage / 100 ))
-                        );
+                    PaymentOrderPoint::where("id", $generatonialResidualPoint->point_id)->update(
+                        array("point" => ( $generatonialResidualPoint->points * $percentage / 100 ))
+                    );
 
-                        RangeUser::where("user_id", $userId)->update(array("range_id" => $rangeId, "status" => 1));
-                    }
-                    // RangeUser::where("user_id", $userId)->update(array("range_id" => $rangeId, "status" => 1));
-                    
+                    RangeUser::where("user_id", $userId)->update(array("range_id" => $rangeId, "status" => 1));
                 }
+                // RangeUser::where("user_id", $userId)->update(array("range_id" => $rangeId, "status" => 1));
+                
             }
-            
         }
     }
 
