@@ -192,12 +192,6 @@ class RangeListBulk extends Command
                         $countActive2 = $this->countTreeRangeDirect($userPoint->user->uuid, 7); 
                         $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 6 && $countActive2 >= 1 && ( $points->pointGroup >= 100000 && $userPoint->user->paymentActive != null) ) );
 
-                    }else if( $range->id == 9){
-                        // IMPERIO = 8
-                        $countActive = $this->createActiveDirect($userPoint->user->uuid);
-                        $countActive2 = $this->countTreeRangeDirect($userPoint->user->uuid, 7); 
-                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 6 && $countActive2 >= 0 && ( $points->pointGroup >= 125700 && $userPoint->user->paymentActive != null) ) );
-
                     }
                 }
 
@@ -370,13 +364,16 @@ class RangeListBulk extends Command
             }else{
                 if( $rangeUser->range_id != $rangeId ){
                     $generatonialResidualPoint = GeneratonialResidualPoints::where("user_id", $userId)->where("range_id", $rangeUser->range_id)->first();
-                    $rangeResidualPoint = RangeResidualPoints::where("range_id", $rangeId)->first();
+                    if( $generatonialResidualPoint != null ){
+                        $rangeResidualPoint = RangeResidualPoints::where("range_id", $rangeId)->first();
 
-                    $percentage = $rangeResidualPoint->{'level'.($generatonialResidualPoint->level)};
+                        $percentage = $rangeResidualPoint->{'level'.($generatonialResidualPoint->level)};
 
-                    PaymentOrderPoint::where("id", $generatonialResidualPoint->point_id)->update(
-                        array("point" => ( $generatonialResidualPoint->points * $percentage / 100 ))
-                    );
+                        PaymentOrderPoint::where("id", $generatonialResidualPoint->point_id)->update(
+                            array("point" => ( $generatonialResidualPoint->points * $percentage / 100 ))
+                        );
+                    }
+                    
 
                     RangeUser::where("user_id", $userId)->update(array("range_id" => $rangeId, "status" => 1));
                 }
