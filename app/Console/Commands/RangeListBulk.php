@@ -56,7 +56,7 @@ class RangeListBulk extends Command
 
             $userModel = User::where("is_admin", 1)->first();
 
-            $userAll = User::where("is_admin", 0)->get();
+            $userAll = User::with(['paymentActive'])->where("is_admin", 0)->get();
 
             $listRange = Range::where("state", 1)->orderBy('order', 'ASC')->get();
 
@@ -73,6 +73,12 @@ class RangeListBulk extends Command
             foreach ($userAll as $keyUser => $user)
             {
                 $rangeUser = RangeUser::where("user_id", $user->id )->first();
+                if( $user->paymentActive == null ){
+                    if( $rangeUser != null ){
+                        RangeUser::where("user_id", $user->id)->update(array("range_id" => 1, "status" => 0));
+                    }
+                }
+                
                 if( $rangeUser == null ){
                     RangeUser::create(array(
                         "user_id" => $user->id, "range_id" => 1, "status" => 1
@@ -137,9 +143,9 @@ class RangeListBulk extends Command
                     ->whereIn("type", [PaymentOrderPoint::PATROCINIO])
                     ->where("payment" , 1)->get();
 
-                    foreach ($_userTreesList as $key => $_user) {
-                        if( $_user->user->paymentActive != null ) $countChild++;
-                    }
+                    // foreach ($_userTreesList as $key => $_user) {
+                    //     if( $_user->user->paymentActive != null ) $countChild++;
+                    // }
 
                     if( $range->id == 2){
 
@@ -194,63 +200,63 @@ class RangeListBulk extends Command
 
             $infinito = array();
 
-            foreach ($userTreesListSponsor as $keyUser => $userPoint)
-            {
-                // 
-                $userModel = User::with(['paymentActive'])->where("uuid", $userPoint->sponsor_code)->first();
+            // foreach ($userTreesListSponsor as $keyUser => $userPoint)
+            // {
+            //     // 
+            //     $userModel = User::with(['paymentActive'])->where("uuid", $userPoint->sponsor_code)->first();
 
-                if( $userPoint->user->paymentActive !=null || $userModel->is_admin  ){
+            //     if( $userPoint->user->paymentActive !=null || $userModel->is_admin  ){
 
-                    $childs = $this->loopTree( $userPoint->sponsor_code );
+            //         $childs = $this->loopTree( $userPoint->sponsor_code );
 
-                    // array_push($infinito, array(
-                    //     "user" => $userPoint->sponsor_code , 
-                    //     "paymentActive" => $this->loopTreeNiveles( $childs , 0 , array() ) 
-                    // ));
+            //         // array_push($infinito, array(
+            //         //     "user" => $userPoint->sponsor_code , 
+            //         //     "paymentActive" => $this->loopTreeNiveles( $childs , 0 , array() ) 
+            //         // ));
 
-                    $totalPoints = $this->loopTreeBonoInifity( $childs , $paymentOrderPoints, 0, 0);
+            //         $totalPoints = $this->loopTreeBonoInifity( $childs , $paymentOrderPoints, 0, 0);
 
-                    $maxRange = false;
-                    $_rangeUser = RangeUser::with(['range'])->where("user_id", $userModel->id )->where("status" , 1)->first();
-                    if( $_rangeUser != null ){
-                        $maxRange = $this->loopTreeVerifyRangeMax( $childs, $_rangeUser->range->order, false );
-                    }
+            //         $maxRange = false;
+            //         $_rangeUser = RangeUser::with(['range'])->where("user_id", $userModel->id )->where("status" , 1)->first();
+            //         if( $_rangeUser != null ){
+            //             $maxRange = $this->loopTreeVerifyRangeMax( $childs, $_rangeUser->range->order, false );
+            //         }
 
-                    if( $totalPoints > 0 ){
+            //         if( $totalPoints > 0 ){
 
-                        $pointInfinito = $totalPoints * 0.02;
-                        if( $maxRange ){
-                            $pointInfinito = $totalPoints * 0.08;
-                        }
+            //             $pointInfinito = $totalPoints * 0.02;
+            //             if( $maxRange ){
+            //                 $pointInfinito = $totalPoints * 0.08;
+            //             }
 
-                        array_push($infinito, array(
-                            "user" => $userPoint->sponsor_code , 
-                            "totalPoints" => $totalPoints,
-                            "maxRange" => $maxRange,
-                            "pointInfinito" => $pointInfinito,
-                        ));
+            //             array_push($infinito, array(
+            //                 "user" => $userPoint->sponsor_code , 
+            //                 "totalPoints" => $totalPoints,
+            //                 "maxRange" => $maxRange,
+            //                 "pointInfinito" => $pointInfinito,
+            //             ));
 
-                        $point = PaymentOrderPoint::where('type' , PaymentOrderPoint::INFINITO)
-                        ->where('user_code' , $userPoint->user_code)
-                        ->where('sponsor_code' , $userPoint->sponsor_code)
-                        ->where('state' , 1)->first();
+            //             $point = PaymentOrderPoint::where('type' , PaymentOrderPoint::INFINITO)
+            //             ->where('user_code' , $userPoint->user_code)
+            //             ->where('sponsor_code' , $userPoint->sponsor_code)
+            //             ->where('state' , 1)->first();
 
-                        if( $point == null ){
-                            if( $userModel->is_admin ) continue;
-                            // PaymentOrderPoint::create(array(
-                            //     'payment_order_id' => $userPoint->user->paymentActive->payment_order_id,
-                            //     'user_code' => $userPoint->user_code,
-                            //     'sponsor_code' => $userPoint->sponsor_code,
-                            //     'point' => $pointInfinito,
-                            //     'payment' => false,
-                            //     'type' => PaymentOrderPoint::INFINITO,
-                            //     'user_id' => $userModel->id
-                            // ));
-                        }
-                    }
+            //             if( $point == null ){
+            //                 if( $userModel->is_admin ) continue;
+            //                 // PaymentOrderPoint::create(array(
+            //                 //     'payment_order_id' => $userPoint->user->paymentActive->payment_order_id,
+            //                 //     'user_code' => $userPoint->user_code,
+            //                 //     'sponsor_code' => $userPoint->sponsor_code,
+            //                 //     'point' => $pointInfinito,
+            //                 //     'payment' => false,
+            //                 //     'type' => PaymentOrderPoint::INFINITO,
+            //                 //     'user_id' => $userModel->id
+            //                 // ));
+            //             }
+            //         }
 
-                }
-            }
+            //     }
+            // }
 
             DB::commit();
 
