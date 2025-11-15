@@ -2077,19 +2077,13 @@ class UserController extends BaseController
             if( $paymentLogsCount > 1 ){
                 $_paymentOrderPoints = $this->loopTree( array() , $userCurrent->uuid );
 
-                var_dump($userCurrent->id);
-
                 $afiliadosPoint = RangeUser::where("user_id", $userCurrent->id)->where("status", true)->first();
                 
                 $rangeResidualPoints = ResidualPoint::first();
-                
-                var_dump($afiliadosPoint);
 
                 if( $afiliadosPoint != null ){
                     $rangeResidualPoints = RangeResidualPoints::where("range_id", $afiliadosPoint->range_id)->first();
                 }
-
-                var_dump($rangeResidualPoints);
 
                 foreach ($_paymentOrderPoints as $key => $_paymentOrderPoint) {
                     $_paymentOrderPoint = (object) $_paymentOrderPoint;
