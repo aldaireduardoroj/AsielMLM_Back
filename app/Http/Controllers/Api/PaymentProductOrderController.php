@@ -1173,20 +1173,23 @@ class PaymentProductOrderController extends BaseController
             if( $paymentLogsCount > 1 ){
                 $_paymentOrderPoints = $this->loopTree( array() , $userCurrent->uuid );
 
-                $afiliadosPoint = RangeUser::where("user_id", $userCurrent->id)->first();
-
-                $rangeResidualPoints = ResidualPoint::first();
+                $afiliadosPoint = RangeUser::where("user_id", $userCurrent->id)->where("status", true)->first();
                 
+                $rangeResidualPoints = ResidualPoint::first();
+
                 if( $afiliadosPoint != null ){
                     $rangeResidualPoints = RangeResidualPoints::where("range_id", $afiliadosPoint->range_id)->first();
+                }else{
+                    $rangeResidualPoints = RangeResidualPoints::where("range_id", 1)->first();
                 }
 
-                foreach ($_paymentOrderPoints ?? array() as $key => $_paymentOrderPoint) {
+                foreach ($_paymentOrderPoints as $key => $_paymentOrderPoint) {
                     $_paymentOrderPoint = (object) $_paymentOrderPoint;
-                    $key++;
+                    $key++; 
                     if( $key > 7 ) continue;
 
                     $level = $rangeResidualPoints->{'level'.($key)};
+                    
                     $point = $points * floatval($level) / 100;
 
                     // antes PaymentOrderPoint::AFILIADOS
@@ -1202,12 +1205,12 @@ class PaymentProductOrderController extends BaseController
 
                     GeneratonialResidualPoints::create(array(
                         'user_id' => $userCurrent->id,
-                        'range_id' => $afiliadosPoint->range_id,
+                        'range_id' => $afiliadosPoint?->range_id ?? 0,
                         'point_id' => $__paymentOrderPoint->id,
                         'points'    => $points,
                         'level' => $key
                     ));
-
+                    
                 }
 
                 

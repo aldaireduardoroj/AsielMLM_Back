@@ -2083,6 +2083,8 @@ class UserController extends BaseController
 
                 if( $afiliadosPoint != null ){
                     $rangeResidualPoints = RangeResidualPoints::where("range_id", $afiliadosPoint->range_id)->first();
+                }else{
+                    $rangeResidualPoints = RangeResidualPoints::where("range_id", 1)->first();
                 }
 
                 foreach ($_paymentOrderPoints as $key => $_paymentOrderPoint) {
