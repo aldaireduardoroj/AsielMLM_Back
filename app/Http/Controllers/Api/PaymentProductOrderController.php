@@ -1177,7 +1177,7 @@ class PaymentProductOrderController extends BaseController
 
                 $rangeResidualPoints = ResidualPoint::first();
                 
-                if( $afiliadosPoint != null && $afiliadosPoint->range_id > 1){
+                if( $afiliadosPoint != null ){
                     $rangeResidualPoints = RangeResidualPoints::where("range_id", $afiliadosPoint->range_id)->first();
                 }
 

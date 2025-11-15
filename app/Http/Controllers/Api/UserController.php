@@ -1116,7 +1116,7 @@ class UserController extends BaseController
 
         }catch (Exception $e){
             DB::rollBack();
-            return $this->sendError( $e->getMessage() , [] , 402 );
+            return $this->sendError( $e->getMessage() , "dsdsdsdsd" , 402 );
         }
     }
 
@@ -2081,7 +2081,7 @@ class UserController extends BaseController
                 
                 $rangeResidualPoints = ResidualPoint::first();
                 
-                if( $afiliadosPoint != null && $afiliadosPoint->range_id > 1){
+                if( $afiliadosPoint != null ){
                     $rangeResidualPoints = RangeResidualPoints::where("range_id", $afiliadosPoint->range_id)->first();
                 }
 
