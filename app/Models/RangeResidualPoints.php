@@ -9,6 +9,8 @@ class RangeResidualPoints extends Model
 {
     use HasFactory;
 
+    protected $table = 'range_residual_points';
+
     protected $fillable = [
         'range_id',
         'level1',
