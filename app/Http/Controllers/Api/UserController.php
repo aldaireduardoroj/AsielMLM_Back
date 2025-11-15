@@ -2108,7 +2108,7 @@ class UserController extends BaseController
 
                     GeneratonialResidualPoints::create(array(
                         'user_id' => $userCurrent->id,
-                        'range_id' => $afiliadosPoint->range_id,
+                        'range_id' => $afiliadosPoint?->range_id ?? 0,
                         'point_id' => $__paymentOrderPoint->id,
                         'points'    => $points,
                         'level' => $key
