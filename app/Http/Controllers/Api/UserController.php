@@ -2090,6 +2090,8 @@ class UserController extends BaseController
 
                     $key++; 
                     if( $key > 7 ) continue;
+                    DB::rollBack();
+                    return $this->sendError( $rangeResidualPoints , "fdfdfdffdfdf" , 402 );
                     $level = $rangeResidualPoints->{'level'.($key)};
                     $point = $points * floatval($level) / 100;
 
