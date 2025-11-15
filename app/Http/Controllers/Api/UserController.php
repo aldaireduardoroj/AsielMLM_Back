@@ -55,6 +55,7 @@ use App\Models\VerificationCodeUser;
 use App\Models\VideoImageStory;
 
 use App\Models\RangeResidualPoints;
+use App\Models\GeneratonialResidualPoints;
 
 
 class UserController extends BaseController
@@ -2076,30 +2077,41 @@ class UserController extends BaseController
             if( $paymentLogsCount > 1 ){
                 $_paymentOrderPoints = $this->loopTree( array() , $userCurrent->uuid );
 
-                $afiliadosPoint = RangeUser::where("user_id", $userCurrent->id)->first();
-                $rangeResidualPoints = RangeResidualPoints::where("range_id", $afiliadosPoint->range_id)->first();
-                if( $afiliadosPoint != null ){
-                    foreach ($_paymentOrderPoints as $key => $_paymentOrderPoint) {
-                        $_paymentOrderPoint = (object) $_paymentOrderPoint;
+                $afiliadosPoint = RangeUser::where("user_id", $userCurrent->id)->where("status", true)->first();
+                
+                $rangeResidualPoints = ResidualPoint::first();
+                
+                if( $afiliadosPoint != null && $afiliadosPoint->range_id > 1){
+                    $rangeResidualPoints = RangeResidualPoints::where("range_id", $afiliadosPoint->range_id)->first();
+                }
 
-                        $key++; 
-                        if( $key > 7 ) continue;
-                        $level = $rangeResidualPoints->{'level'.($key)};
-                        $point = $points * floatval($level) / 100;
+                foreach ($_paymentOrderPoints as $key => $_paymentOrderPoint) {
+                    $_paymentOrderPoint = (object) $_paymentOrderPoint;
 
-                        // antes PaymentOrderPoint::AFILIADOS
-                        PaymentOrderPoint::create(array(
-                            'payment_order_id' => $paymentLog->payment_order_id,
-                            'user_code' => $_paymentOrderPoint->user_code,
-                            'sponsor_code' => $_paymentOrderPoint->sponsor_code,
-                            'point' => $point,
-                            'payment' => false,
-                            'type' => PaymentOrderPoint::RESIDUAL,
-                            'user_id' => $userCurrent->id
-                        ));
+                    $key++; 
+                    if( $key > 7 ) continue;
+                    $level = $rangeResidualPoints->{'level'.($key)};
+                    $point = $points * floatval($level) / 100;
 
-                        
-                    }
+                    // antes PaymentOrderPoint::AFILIADOS
+                    $__paymentOrderPoint = PaymentOrderPoint::create(array(
+                        'payment_order_id' => $paymentLog->payment_order_id,
+                        'user_code' => $_paymentOrderPoint->user_code,
+                        'sponsor_code' => $_paymentOrderPoint->sponsor_code,
+                        'point' => $point,
+                        'payment' => false,
+                        'type' => PaymentOrderPoint::RESIDUAL,
+                        'user_id' => $userCurrent->id
+                    ));
+
+                    GeneratonialResidualPoints::create(array(
+                        'user_id' => $userCurrent->id,
+                        'range_id' => $afiliadosPoint->range_id,
+                        'point_id' => $__paymentOrderPoint->id,
+                        'points'    => $points,
+                        'level' => $key
+                    ));
+                    
                 }
                 
             }
