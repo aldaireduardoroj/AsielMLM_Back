@@ -2081,6 +2081,8 @@ class UserController extends BaseController
                 
                 $rangeResidualPoints = ResidualPoint::first();
                 
+                var_dump($afiliadosPoint);
+
                 if( $afiliadosPoint != null ){
                     $rangeResidualPoints = RangeResidualPoints::where("range_id", $afiliadosPoint->range_id)->first();
                 }
