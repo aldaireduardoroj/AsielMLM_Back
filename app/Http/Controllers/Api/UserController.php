@@ -1977,10 +1977,10 @@ class UserController extends BaseController
             }
 
             // pago puntos residual
-            $level = $residualPoint->level1;
-            $option = Option::where("option_key", 'point_residual')->first();
-            // floatval($packCurrent->points)
-            $point = ( floatval($option->option_value) ) * floatval($level) / 100;
+            // $level = $residualPoint->level1;
+            // $option = Option::where("option_key", 'point_residual')->first();
+            // // floatval($packCurrent->points)
+            // $point = ( floatval($option->option_value) ) * floatval($level) / 100;
             
             //-- se paso a la opcion de compras
             // PaymentOrderPoint::create(array(
@@ -2025,10 +2025,10 @@ class UserController extends BaseController
                 if( $key == 0 ) continue;
                 $key++;
                 if( $key > 3 ) break;
-                $level = $residualPoint->{'level'.($key)};
+                // $level = $residualPoint->{'level'.($key)};
 
-                $option = Option::where("option_key", 'point_residual')->first();
-                $point = floatval($option->option_value) * floatval($level) / 100;
+                // $option = Option::where("option_key", 'point_residual')->first();
+                // $point = floatval($option->option_value) * floatval($level) / 100;
 
                 //-- se paso a la opcion de compras
                 // PaymentOrderPoint::create(array(
@@ -2090,8 +2090,7 @@ class UserController extends BaseController
 
                     $key++; 
                     if( $key > 7 ) continue;
-                    DB::rollBack();
-                    return $this->sendError( $rangeResidualPoints , "fdfdfdffdfdf" , 402 );
+
                     $level = $rangeResidualPoints->{'level'.($key)};
                     $point = $points * floatval($level) / 100;
 
