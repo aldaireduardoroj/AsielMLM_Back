@@ -2085,6 +2085,8 @@ class UserController extends BaseController
                     $rangeResidualPoints = RangeResidualPoints::where("range_id", $afiliadosPoint->range_id)->first();
                 }
 
+                var_dump($rangeResidualPoints);
+
                 foreach ($_paymentOrderPoints as $key => $_paymentOrderPoint) {
                     $_paymentOrderPoint = (object) $_paymentOrderPoint;
 
@@ -2092,6 +2094,7 @@ class UserController extends BaseController
                     if( $key > 7 ) continue;
 
                     $level = $rangeResidualPoints->{'level'.($key)};
+                    
                     $point = $points * floatval($level) / 100;
 
                     // antes PaymentOrderPoint::AFILIADOS
