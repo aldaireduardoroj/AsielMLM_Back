@@ -2051,25 +2051,29 @@ class UserController extends BaseController
             }
 
         }
-        foreach ($_paymentOrderPoints as $key => $_paymentOrderPoint) {
-            $_paymentOrderPoint = (object) $_paymentOrderPoint;
 
-            $point = $packCurrent->points;
-            // if( $paymentLogsCount > 0 ){
-            //     $option = Option::where("option_key", 'reactive_point')->first();
-            //     $point = floatval($option->option_value);
-            // }
+        if( !$reactiveAdmin ){
+            foreach ($_paymentOrderPoints as $key => $_paymentOrderPoint) {
+                $_paymentOrderPoint = (object) $_paymentOrderPoint;
 
-            PaymentOrderPoint::create(array(
-                'payment_order_id' => $paymentOrder->id,
-                'user_code' => $_paymentOrderPoint->user_code,
-                'sponsor_code' => $_paymentOrderPoint->sponsor_code,
-                'point' => $point,
-                'payment' => false,
-                'type' => PaymentOrderPoint::GRUPAL,
-                'user_id' => $userCurrent->id
-            ));
+                $point = $packCurrent->points;
+                // if( $paymentLogsCount > 0 ){
+                //     $option = Option::where("option_key", 'reactive_point')->first();
+                //     $point = floatval($option->option_value);
+                // }
+
+                PaymentOrderPoint::create(array(
+                    'payment_order_id' => $paymentOrder->id,
+                    'user_code' => $_paymentOrderPoint->user_code,
+                    'sponsor_code' => $_paymentOrderPoint->sponsor_code,
+                    'point' => $point,
+                    'payment' => false,
+                    'type' => PaymentOrderPoint::GRUPAL,
+                    'user_id' => $userCurrent->id
+                ));
+            }
         }
+        
         
     }
 
@@ -2098,6 +2102,17 @@ class UserController extends BaseController
                 foreach ($_paymentOrderPoints as $key => $_paymentOrderPoint) {
                     $_paymentOrderPoint = (object) $_paymentOrderPoint;
                     $key++; 
+
+                    PaymentOrderPoint::create(array(
+                        'payment_order_id' => $paymentLog->payment_order_id,
+                        'user_code' => $_paymentOrderPoint->user_code,
+                        'sponsor_code' => $_paymentOrderPoint->sponsor_code,
+                        'point' => $points,
+                        'payment' => false,
+                        'type' => PaymentOrderPoint::GRUPAL,
+                        'user_id' => $userCurrent->id
+                    ));
+
                     if( $key > 7 ) continue;
 
                     $level = $rangeResidualPoints->{'level'.($key)};
