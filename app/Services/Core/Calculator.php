@@ -77,7 +77,8 @@ class Calculator
 
         $optionBono = Option::where("option_key", 'bono_global')->first();
 
-        $personalGlobal = $paymentCount > 1 ? ($payment?->state == PaymentLog::PAGADO ? ($payment?->paymentOrder?->pack?->id == $optionBono->option_value ? $personal * 0.02 : 0) : 0) : 0;
+        // $personalGlobal = $paymentCount > 1 ? ($payment?->state == PaymentLog::PAGADO ? ($payment?->paymentOrder?->pack?->id == $optionBono->option_value ? $personal * 0.02 : 0) : 0) : 0;
+        $personalGlobal = 0;
 
         return (object) array(
             "patrocinio"    => $patrocinio,
