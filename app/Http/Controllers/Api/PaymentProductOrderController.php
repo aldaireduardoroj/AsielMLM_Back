@@ -237,7 +237,7 @@ class PaymentProductOrderController extends BaseController
                 array_push($productIds , $product->product);
             }
 
-            $productList = Product::whereIn('id' , $productIds)->get();
+            $productList = Product::with(['discounts'])->whereIn('id' , $productIds)->get();
 
             $productListCreate = array();
 
@@ -245,15 +245,23 @@ class PaymentProductOrderController extends BaseController
                 $keyDetail = array_search( $product->id , array_column($dataBody->details , 'product')  );
                 $productDetail = (object) $dataBody->details[$keyDetail];
 
-                $totalAmount += ( $product->price *  $productDetail->quantity );
-                if( $packId != null ){
-                    $productPointPack = ProductPointPack::where("product_id" , $product->id )->where("pack_id" , $packId)->first();
-                    if(  $productPointPack == null ) $totalPoints += $product->points * $productDetail->quantity;
+                if( $paymentLog?->paymentOrder?->pack_id != null ){
+
+                    $discounts = array_filter( (array)$product->discounts , fn($v) => $v == $paymentLog?->paymentOrder?->pack_id );
+                    if( count($discounts) > 0 ){
+                        $totalAmount += ( ($product->price * ( (100 - $discounts[0]->discount) / 100 ) ) *  $productDetail->quantity );
+                    }else{
+                        $totalAmount +=  ($product->price  *  $productDetail->quantity );
+                    }
+
+                    $productPointPack = ProductPointPack::where("product_id" , $product->id )->where("pack_id" , $paymentLog?->paymentOrder?->pack_id)->first();
+                    if(  $productPointPack == null ) $totalPoints += 0;
                     else{
-                        $totalPoints += $productPointPack->point * $productDetail->quantity;
+                        $totalPoints += $productPointPack->point *  $productDetail->quantity;
                     }
                 }else{
-                    $totalPoints += $product->points * $productDetail->quantity;
+                    $totalPoints += 0;
+                    $totalAmount += ( $product->price *  $productDetail->quantity );
                 }
 
             }
@@ -929,15 +937,23 @@ class PaymentProductOrderController extends BaseController
                 $keyDetail = array_search( $product->id , array_column($dataBody->details , 'product')  );
                 $productDetail = (object) $dataBody->details[$keyDetail];
 
-                $totalAmount += ( $product->price *  $productDetail->quantity );
-                if( $packId != null ){
-                    $productPointPack = ProductPointPack::where("product_id" , $product->id )->where("pack_id" , $packId)->first();
+                if( $paymentLog?->paymentOrder?->pack_id != null ){
+
+                    $discounts = array_filter( (array)$product->discounts , fn($v) => $v == $paymentLog?->paymentOrder?->pack_id );
+                    if( count($discounts) > 0 ){
+                        $totalAmount += ( ($product->price * ( (100 - $discounts[0]->discount) / 100 ) ) *  $productDetail->quantity );
+                    }else{
+                        $totalAmount +=  ($product->price  *  $productDetail->quantity );
+                    }
+
+                    $productPointPack = ProductPointPack::where("product_id" , $product->id )->where("pack_id" , $paymentLog?->paymentOrder?->pack_id)->first();
                     if(  $productPointPack == null ) $totalPoints += 0;
                     else{
                         $totalPoints += $productPointPack->point *  $productDetail->quantity;
                     }
                 }else{
                     $totalPoints += 0;
+                    $totalAmount += ( $product->price *  $productDetail->quantity );
                 }
 
             }

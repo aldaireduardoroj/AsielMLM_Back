@@ -1151,10 +1151,10 @@ class PaymentOrderController extends BaseController
         foreach ($_paymentOrderPoints as $key => $_paymentOrderPoint) {
             $_paymentOrderPoint = (object) $_paymentOrderPoint;
             $point = $packCurrent->points;
-            if( $paymentLogsCount > 0 ){
-                $option = Option::where("option_key", 'reactive_point')->first();
-                $point = floatval($option->option_value);
-            }
+            // if( $paymentLogsCount > 0 ){
+            //     $option = Option::where("option_key", 'reactive_point')->first();
+            //     $point = floatval($option->option_value);
+            // }
             PaymentOrderPoint::create(array(
                 'payment_order_id' => $paymentOrder->id,
                 'user_code' => $_paymentOrderPoint->user_code,

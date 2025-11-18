@@ -974,7 +974,7 @@ class UserController extends BaseController
                 array_push($productIds , $product->product);
             }
 
-            $productList = Product::whereIn('id' , $productIds)->get();
+            $productList = Product::with(['discounts'])->whereIn('id' , $productIds)->get();
 
             $productListCreate = array();
 
@@ -986,8 +986,15 @@ class UserController extends BaseController
                 $keyDetail = array_search( $product->id , array_column($dataBody->products , 'product')  );
                 $productDetail = (object) $dataBody->products[$keyDetail];
 
-                $totalAmount += ( $product->price *  $productDetail->quantity );
                 if( $paymentLog?->paymentOrder?->pack_id != null ){
+
+                    $discounts = array_filter( (array)$product->discounts , fn($v) => $v == $paymentLog?->paymentOrder?->pack_id );
+                    if( count($discounts) > 0 ){
+                        $totalAmount += ( ($product->price * ( (100 - $discounts[0]->discount) / 100 ) ) *  $productDetail->quantity );
+                    }else{
+                        $totalAmount +=  ($product->price  *  $productDetail->quantity );
+                    }
+
                     $productPointPack = ProductPointPack::where("product_id" , $product->id )->where("pack_id" , $paymentLog?->paymentOrder?->pack_id)->first();
                     if(  $productPointPack == null ) $totalPoints += 0;
                     else{
@@ -995,6 +1002,7 @@ class UserController extends BaseController
                     }
                 }else{
                     $totalPoints += 0;
+                    $totalAmount += ( $product->price *  $productDetail->quantity );
                 }
 
             }
@@ -1004,9 +1012,9 @@ class UserController extends BaseController
                 $discount = floatval( $packCurrent->discount );
             }
 
-            if( $discount > 0 ){
-                $totalAmount = $totalAmount * (100 - $discount) / 100;
-            }
+            // if( $discount > 0 ){
+            //     $totalAmount = $totalAmount * (100 - $discount) / 100;
+            // }
 
             $paymentProductOrder = PaymentProductOrder::create(
                 array(
@@ -1033,10 +1041,10 @@ class UserController extends BaseController
                 $productPointPack = ProductPointPack::where("product_id" , $product->id )->where("pack_id" , $paymentLog?->paymentOrder?->pack_id)->first();
                 if(  $productPointPack != null ) $_points = $productPointPack->point *  $productDetail->quantity;
 
-                if( $discount > 0 ){
-                    $price = $price * (100 - $discount) /100;
-                    $subtotal = $subtotal * (100 - $discount) /100;
-                }
+                // if( $discount > 0 ){
+                //     $price = $price * (100 - $discount) /100;
+                //     $subtotal = $subtotal * (100 - $discount) /100;
+                // }
 
                 array_push(
                     $productListCreate,
