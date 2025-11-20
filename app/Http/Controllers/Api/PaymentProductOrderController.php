@@ -778,8 +778,29 @@ class PaymentProductOrderController extends BaseController
                 $keyDetail = array_search( $product->id , array_column($dataBody->details , 'product')  );
                 $productDetail = (object) $dataBody->details[$keyDetail];
 
-                $totalAmount += ( $product->price *  $productDetail->quantity );
-                $totalPoints += $product->points;
+                if( $paymentLog?->paymentOrder?->pack_id != null ){
+                    $isdiscount = false;
+                    foreach ($product->discounts as $key => $_discount) {
+                        if(  $_discount->pack_id == $paymentLog?->paymentOrder?->pack_id ){
+                            $totalAmount += ( ($product->price * ( (100 - $_discount->discount) / 100 ) ) *  $productDetail->quantity );
+                            $isdiscount = true;
+                            break;
+                        }
+                    }
+                    if( !$isdiscount ){
+                        $totalAmount +=  ($product->price  *  $productDetail->quantity );
+                    }
+                    
+
+                    $productPointPack = ProductPointPack::where("product_id" , $product->id )->where("pack_id" , $paymentLog?->paymentOrder?->pack_id)->first();
+                    if(  $productPointPack == null ) $totalPoints += 0;
+                    else{
+                        $totalPoints += $productPointPack->point *  $productDetail->quantity;
+                    }
+                }else{
+                    $totalPoints += 0;
+                    $totalAmount += ( $product->price *  $productDetail->quantity );
+                }
 
             }
 
@@ -803,17 +824,29 @@ class PaymentProductOrderController extends BaseController
                 $keyDetail = array_search( $product->id , array_column($dataBody->details , 'product')  );
                 $productDetail = (object) $dataBody->details[$keyDetail];
 
-                $totalAmount += ( $product->price *  $productDetail->quantity );
-                $totalPoints += $product->points;
+                $price = $product->price;
+                $subtotal = $product->price * $productDetail->quantity;
+                $_points = 0;
+                $productPointPack = ProductPointPack::where("product_id" , $product->id )->where("pack_id" , $paymentLog?->paymentOrder?->pack_id)->first();
+                if(  $productPointPack != null ) $_points = $productPointPack->point *  $productDetail->quantity;
+
+                $isdiscount = false;
+                foreach ($product->discounts as $key => $_discount) {
+                    if(  $_discount->pack_id == $paymentLog?->paymentOrder?->pack_id ){
+                        $subtotal = ( ($product->price * ( (100 - $_discount->discount) / 100 ) ) *  $productDetail->quantity );
+                        $price = $product->price * ( (100 - $_discount->discount) / 100 );
+                        break;
+                    }
+                }
 
                 $productListCreate[] = array(
                     'payment_product_order_id'  => $paymentProductOrder->id,
                     'product_id'                => $product->id,
                     'product_title'             => $product->title,
                     'quantity'                  => $productDetail->quantity,
-                    'price'                     => $product->price,
-                    'subtotal'                  => $product->price * $productDetail->quantity,
-                    'points'                    => $product->points,
+                    'price'                     => $price,
+                    'subtotal'                  => $subtotal,
+                    'points'                    => $_points,
                     'created_at'                => now(),
                     'updated_at'                => now(),
                 );
