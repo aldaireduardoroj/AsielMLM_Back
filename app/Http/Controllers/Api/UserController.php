@@ -988,7 +988,7 @@ class UserController extends BaseController
 
                 if( $paymentLog?->paymentOrder?->pack_id != null ){
 
-                    $discounts = array_filter( $product->discounts , fn($v) => $v->pack_id == $paymentLog?->paymentOrder?->pack_id );
+                    $discounts = array_filter( $product->discounts->toArray() , fn($v) => $v['pack_id'] == $paymentLog?->paymentOrder?->pack_id );
                     if( count($discounts) > 0 ){
                         $totalAmount += ( ($product->price * ( (100 - $discounts[0]->discount) / 100 ) ) *  $productDetail->quantity );
                     }else{
@@ -1041,7 +1041,7 @@ class UserController extends BaseController
                 $productPointPack = ProductPointPack::where("product_id" , $product->id )->where("pack_id" , $paymentLog?->paymentOrder?->pack_id)->first();
                 if(  $productPointPack != null ) $_points = $productPointPack->point *  $productDetail->quantity;
 
-                $discounts = array_filter( $product->discounts , fn($v) => $v->pack_id == $paymentLog?->paymentOrder?->pack_id );
+                $discounts = array_filter( $product->discounts->toArray() , fn($v) => $v['pack_id'] == $paymentLog?->paymentOrder?->pack_id );
                 if( count($discounts) > 0 ){
                     $subtotal = ( ($product->price * ( (100 - $discounts[0]->discount) / 100 ) ) *  $productDetail->quantity );
                     $price = $product->price * ( (100 - $discounts[0]->discount) / 100 );
