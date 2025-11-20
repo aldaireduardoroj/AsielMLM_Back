@@ -987,13 +987,18 @@ class UserController extends BaseController
                 $productDetail = (object) $dataBody->products[$keyDetail];
 
                 if( $paymentLog?->paymentOrder?->pack_id != null ){
-
-                    $discounts = array_filter( $product->discounts->toArray() , fn($v) => $v['pack_id'] == $paymentLog?->paymentOrder?->pack_id );
-                    if( count($discounts) > 0 ){
-                        $totalAmount += ( ($product->price * ( (100 - $discounts[0]->discount) / 100 ) ) *  $productDetail->quantity );
-                    }else{
+                    $isdiscount = false;
+                    foreach ($product->discounts as $key => $_discount) {
+                        if(  $_discount->pack_id == $paymentLog?->paymentOrder?->pack_id ){
+                            $totalAmount += ( ($product->price * ( (100 - $_discount->discount) / 100 ) ) *  $productDetail->quantity );
+                            $isdiscount = true;
+                            break;
+                        }
+                    }
+                    if( !$isdiscount ){
                         $totalAmount +=  ($product->price  *  $productDetail->quantity );
                     }
+                    
 
                     $productPointPack = ProductPointPack::where("product_id" , $product->id )->where("pack_id" , $paymentLog?->paymentOrder?->pack_id)->first();
                     if(  $productPointPack == null ) $totalPoints += 0;
@@ -1041,10 +1046,13 @@ class UserController extends BaseController
                 $productPointPack = ProductPointPack::where("product_id" , $product->id )->where("pack_id" , $paymentLog?->paymentOrder?->pack_id)->first();
                 if(  $productPointPack != null ) $_points = $productPointPack->point *  $productDetail->quantity;
 
-                $discounts = array_filter( $product->discounts->toArray() , fn($v) => $v['pack_id'] == $paymentLog?->paymentOrder?->pack_id );
-                if( count($discounts) > 0 ){
-                    $subtotal = ( ($product->price * ( (100 - $discounts[0]->discount) / 100 ) ) *  $productDetail->quantity );
-                    $price = $product->price * ( (100 - $discounts[0]->discount) / 100 );
+                $isdiscount = false;
+                foreach ($product->discounts as $key => $_discount) {
+                    if(  $_discount->pack_id == $paymentLog?->paymentOrder?->pack_id ){
+                        $subtotal = ( ($product->price * ( (100 - $_discount->discount) / 100 ) ) *  $productDetail->quantity );
+                        $price = $product->price * ( (100 - $_discount->discount) / 100 );
+                        break;
+                    }
                 }
 
                 array_push(
