@@ -992,7 +992,7 @@ class UserController extends BaseController
                     if( count($discounts) > 0 ){
                         $totalAmount += ( ($product->price * ( (100 - $discounts[0]->discount) / 100 ) ) *  $productDetail->quantity );
                     }else{
-                        $totalAmount +=  ($product->price  *  $productDetail->quantity );
+                        $totalAmount +=  ($product->price  *  $productDetail->quantity ); 
                     }
 
                     $productPointPack = ProductPointPack::where("product_id" , $product->id )->where("pack_id" , $paymentLog?->paymentOrder?->pack_id)->first();
