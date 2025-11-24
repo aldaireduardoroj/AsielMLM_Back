@@ -316,6 +316,21 @@ class UserController extends BaseController
                 );
 
                 if( $dataBody->packId != 1 ){
+
+                    PaymentOrderPoint::where("user_id" , $userUpdated->id)
+                        ->where("state", true)
+                        ->update( array("state" => false) );
+
+                    PaymentProductOrderPoint::where("user_id" , $userUpdated->id)
+                        ->update( array( "state" => false ) );
+
+                    PaymentProductOrder::where("user_id" , $userUpdated->id)
+                        ->where("state", PaymentProductOrder::PAGADO)
+                        ->update( array("state" => PaymentProductOrder::ANULADO) );
+
+                    PaymentLog::where("user_id" , $userUpdated->id)
+                        ->update( array("state" => PaymentLog::ANULADO) );
+
                     $packCurrent = Pack::find($dataBody->packId);
                     if( $packCurrent == null ) return $this->sendError( "No se existe el plan seleccionado" );
                     $orderId = uniqid( $packCurrent->title );
@@ -324,12 +339,23 @@ class UserController extends BaseController
 
                         // if( $this->confirmPointService->maxChilds( $dataBody->sponsorNew ) ) return $this->sendError('Tu patrocinador esta al limite de invitados.');
 
+                        $paymentOrderPoint = PaymentOrderPoint::where("user_id" , 'like', $userUpdated->id)
+                        ->whereIn("type", [ PaymentOrderPoint::PATROCINIO ])
+                        ->where("payment" , true)
+                        ->first();
+
+                        if( $paymentOrderPoint != null ){
+                            if( strtoupper( $paymentOrderPoint->sponsor_code ) != strtoupper( $dataBody->sponsorNew ) ){
+                                return $this->sendError('El patrocinador no puede diferente al actual, debe eliminar al usuario para volver a asignarlo.');
+                            }
+                        }
+
                         $sponsorId = $this->confirmPointService->verifyChildNewSponsor( $dataBody->sponsorNew );
                         
                         $_paymentOrder = PaymentOrder::create(
                             array(
                                 'currency' => "PEN",
-                                'amount' => 0,
+                                'amount' => $packCurrent->price,
                                 'sponsor_code' => $sponsorId,
                                 'pack_id' => $packCurrent->id,
                                 "token" => $orderId
@@ -352,12 +378,14 @@ class UserController extends BaseController
                         $paymentOrder = PaymentOrder::create(
                             array(
                                 'currency' => "PEN",
-                                'amount' => 0,
+                                'amount' => $packCurrent->price,
                                 'sponsor_code' => $paymentLogOld->paymentOrder->sponsor_code,
                                 'pack_id' => $packCurrent->id,
                                 "token" => $orderId
                             )
                         );
+
+                        $this->confirmPoint($paymentOrder , $userUpdated , $packCurrent);
 
                         $paymentLog = PaymentLog::create(
                             array(
