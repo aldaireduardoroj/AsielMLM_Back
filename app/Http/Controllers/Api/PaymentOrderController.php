@@ -1110,7 +1110,7 @@ class PaymentOrderController extends BaseController
                 $_paymentOrderPoint = (object) $_paymentOrderPoint;
                 if( $key == 0 ) continue;
                 $key++;
-                if( $key > 3 ) break;
+                if( $key > 5 ) break;
                 $level = $sponsorshipPoint->{'level'.($key)};
                 $point = floatval($packCurrent->points) * floatval($level) / 100;
                 PaymentOrderPoint::create(array(
