@@ -331,6 +331,9 @@ class UserController extends BaseController
                     PaymentLog::where("user_id" , $userUpdated->id)
                         ->update( array("state" => PaymentLog::ANULADO) );
 
+                    PaymentOrderPoint::where("user_id" , $userUpdated->id)
+                        ->update( array("state" => false, "type" => PaymentOrderPoint::RESET) );
+
                     $packCurrent = Pack::find($dataBody->packId);
                     if( $packCurrent == null ) return $this->sendError( "No se existe el plan seleccionado" );
                     $orderId = uniqid( $packCurrent->title );
