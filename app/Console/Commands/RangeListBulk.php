@@ -77,6 +77,8 @@ class RangeListBulk extends Command
                     if( $rangeUser != null ){
                         RangeUser::where("user_id", $user->id)->update(array("range_id" => 1, "status" => 0));
                     }
+                }else{
+                    RangeUser::where("user_id", $user->id)->update(array( "status" => 1));
                 }
                 
                 if( $rangeUser == null ){
