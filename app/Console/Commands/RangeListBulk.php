@@ -68,7 +68,7 @@ class RangeListBulk extends Command
             $userTreesListSponsor = PaymentOrderPoint::with([ 'user.paymentActive'])->whereIn("type", [PaymentOrderPoint::PATROCINIO])
                 ->where("payment" , 1)->get();
 
-            // RangeUser::where("status", 1)->update(array("status" => 0));
+            RangeUser::where("status", 1)->update(array("status" => 0));
 
             foreach ($userAll as $keyUser => $user)
             {
@@ -78,7 +78,7 @@ class RangeListBulk extends Command
                         RangeUser::where("user_id", $user->id)->update(array("range_id" => 1, "status" => 0));
                     }
                 }else{
-                    RangeUser::where("user_id", $user->id)->update(array( "status" => 1));
+                    RangeUser::where("user_id", $user->id)->where("range_id", 1 )->update(array( "status" => 1));
                 }
                 
                 if( $rangeUser == null ){

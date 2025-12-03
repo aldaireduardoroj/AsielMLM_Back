@@ -705,7 +705,7 @@ class UserController extends BaseController
             $año = $fechaActual->format('Y');
             $month = $fechaActual->format('m');
 
-            $subject = "Resumen General de puntos y bonos del último mes - Imperio Global";
+            $subject = "Resumen General de puntos y bonos del último mes - Asiel";
 
             foreach ($userList as $key => $user) {
                 if( $user->is_admin ){
