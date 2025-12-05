@@ -77,8 +77,6 @@ class RangeListBulk extends Command
                     if( $rangeUser != null ){
                         RangeUser::where("user_id", $user->id)->update(array("range_id" => 1, "status" => 0));
                     }
-                }else{
-                    RangeUser::where("user_id", $user->id)->where("range_id", 1 )->update(array( "status" => 1));
                 }
                 
                 if( $rangeUser == null ){
@@ -148,17 +146,11 @@ class RangeListBulk extends Command
                     // foreach ($_userTreesList as $key => $_user) {
                     //     if( $_user->user->paymentActive != null ) $countChild++;
                     // }
-
-                    if( $range->id == 2){
-
+                    if( $range->id == 1){
+                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, true );
+                    }else if( $range->id == 2){
                         $countActive = $this->createActiveDirect($userPoint->user->uuid);
                         $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 2 && ( $points->pointGroup >= 1200 && $userPoint->user->paymentActive != null) ) );
-                        array_push( $response , array(
-                            "user" => $userPoint->user->id,
-                            "range" => 2,
-                            "state" => ($countActive >= 2 && ( $points->pointGroup >= 1200 && $userPoint->user->paymentActive != null) )
-                        ) );
-
                     }else if( $range->id == 3){
 
                         $countActive = $this->countTreeRangeDirect($userPoint->user->uuid, 2);
@@ -375,8 +367,6 @@ class RangeListBulk extends Command
                             array("point" => ( $generatonialResidualPoint->points * $percentage / 100 ))
                         );
                     }
-                    
-
                     RangeUser::where("user_id", $userId)->update(array("range_id" => $rangeId, "status" => 1));
                 }
                 // RangeUser::where("user_id", $userId)->update(array("range_id" => $rangeId, "status" => 1));
