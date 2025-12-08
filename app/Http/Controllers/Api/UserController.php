@@ -605,10 +605,14 @@ class UserController extends BaseController
                 "sponsor_code" => $dataBody->sponsorCode
             ));
 
-            PaymentOrderPoint::where("user_id" , $userCurrent->id)
-                // ->where("payment_order_id" , $paymentLog->paymentOrder->id)
-                // ->where("type" , $paymentLog->paymentOrder->id)
-                ->update(array("sponsor_code" => $dataBody->sponsorCode));
+            $paymentOrder = PaymentOrder::where("id" , $paymentLog->paymentOrder->id)->first();
+
+            $packCurrent = Pack::find($paymentOrder->pack_id);
+
+            $this->confirmPoint($paymentOrder , $userCurrent , $packCurrent);
+
+            // PaymentOrderPoint::where("user_id" , $userCurrent->id)
+            //     ->update(array("sponsor_code" => $dataBody->sponsorCode));
 
             DB::commit();
             return $this->sendResponse( 1 , '');

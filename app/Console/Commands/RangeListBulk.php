@@ -166,7 +166,7 @@ class RangeListBulk extends Command
                         // RUBI = 9
                         $countActive = $this->createActiveDirect($userPoint->user->uuid);
                         $countActive2 = $this->countTreeRangeDirect($userPoint->user->uuid, 4); 
-                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 4 && $countActive2 >= 1 && ( $points->pointGroup >= 12000 && $userPoint->user->paymentActive != null) ) );
+                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 3 && $countActive2 >= 1 && ( $points->pointGroup >= 12000 && $userPoint->user->paymentActive != null) ) );
 
                     }else if( $range->id == 6){
                         // DIAMANTE = 5
