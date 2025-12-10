@@ -12,9 +12,9 @@ use Carbon\Carbon;
 $schedule = app(Schedule::class);
 
 
-// $schedule->command('app:reset-users-active')
-//     ->timezone('America/Lima')
-//     ->monthlyOn(1, '00:00');
+$schedule->command('app:reset-users-active')
+    ->timezone('America/Lima')
+    ->monthlyOn(1, '00:10');
 
 // $schedule->command('app:range-list-bulk')
 //     ->timezone('America/Lima')

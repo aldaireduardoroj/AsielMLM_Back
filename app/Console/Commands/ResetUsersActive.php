@@ -71,9 +71,13 @@ class ResetUsersActive extends Command
             $fechaActual = Carbon::now();
 
             // Obtener mes y año
-            $mes = $fechaActual->translatedFormat('F'); // o 'F' para nombre del mes
-            $año = $fechaActual->format('Y');
-            $month = $fechaActual->format('m');
+            $oneMonthAgo = $fechaActual->subMonth();
+
+            // Obtener mes y año
+            $mes = $oneMonthAgo->translatedFormat('F'); // o 'F' para nombre del mes
+            $año = $oneMonthAgo->format('Y');
+            $month = $oneMonthAgo->format('m');
+
 
             $subject = "Resumen General de puntos y bonos del último mes - Imperio Global";
 
