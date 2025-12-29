@@ -1268,6 +1268,10 @@ class UserController extends BaseController
                 return $this->sendError( "No se encontro ningun dato pasado");
             }
 
+            if(  $contentFile == null){
+                return $this->sendError( "No se encontro archivo");
+            }
+
             $fecha = Carbon::now()->format('YmdHis');
             $nameFile = "reporte_usuarios_{$fecha}.xlsx";
 
