@@ -157,17 +157,17 @@ class ResetUsersActive extends Command
 
                     Excel::store(new ReportExcelUsers($excelBody), $nameFile);
 
-                    // $userTemp = UserEmailTemp::create(array(
-                    //     'userId' => $user->id,
-                    //     'isAdmin' => $user->is_admin,
-                    //     'status' => UserEmailTemp::PENDIENTE,
-                    //     'email' => $user->email,
-                    //     'subject' => $subject . " ". strtoupper($mes) ."-".$año ,
-                    //     'month'=> $month,
-                    //     'year'=> $año,
-                    //     'jsonBody'=> serialize($jsonBody),
-                    //     'fileAttachment' => $nameFile
-                    // ));
+                    $userTemp = UserEmailTemp::create(array(
+                        'userId' => $user->id,
+                        'isAdmin' => $user->is_admin,
+                        'status' => UserEmailTemp::PENDIENTE,
+                        'email' => $user->email,
+                        'subject' => $subject . " ". strtoupper($mes) ."-".$año ,
+                        'month'=> $month,
+                        'year'=> $año,
+                        'jsonBody'=> serialize($jsonBody),
+                        'fileAttachment' => $nameFile
+                    ));
 
                 }else{
                     // ==== SOLO USUARIOS
@@ -206,16 +206,16 @@ class ResetUsersActive extends Command
                         "totalPoint" => $calculatorTotalPoint
                     );
 
-                    // $userTemp = UserEmailTemp::create(array(
-                    //     'userId' => $user->id,
-                    //     'isAdmin' => $user->is_admin,
-                    //     'status' => UserEmailTemp::PENDIENTE,
-                    //     'email' => $user->email,
-                    //     'subject' => $subject. " ". strtoupper($mes) ."-".$año,
-                    //     'month'=> $month,
-                    //     'year'=> $año,
-                    //     'jsonBody'=> serialize($jsonBody),
-                    // ));
+                    $userTemp = UserEmailTemp::create(array(
+                        'userId' => $user->id,
+                        'isAdmin' => $user->is_admin,
+                        'status' => UserEmailTemp::PENDIENTE,
+                        'email' => $user->email,
+                        'subject' => $subject. " ". strtoupper($mes) ."-".$año,
+                        'month'=> $month,
+                        'year'=> $año,
+                        'jsonBody'=> serialize($jsonBody),
+                    ));
 
                 }
             }
