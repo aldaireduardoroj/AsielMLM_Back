@@ -28,7 +28,8 @@ class User extends Authenticatable
         'photo',
         'city',
         'country',
-        'gender'
+        'gender',
+        'is_bot'
     ];
 
     /**

@@ -1856,7 +1856,8 @@ class UserController extends BaseController
                 'name'     => $dataBody->name,
                 'email'    => $dataBody->email,
                 'uuid'     => $dataBody->dni,
-                'password' => bcrypt($dataBody->password)
+                'password' => bcrypt($dataBody->password),
+                'is_bot'   => true
             ]);
 
             $codeGenerator = new CodeGenerator();
