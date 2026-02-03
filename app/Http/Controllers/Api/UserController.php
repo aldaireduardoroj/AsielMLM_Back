@@ -202,6 +202,7 @@ class UserController extends BaseController
             if( $request->has('code') ) if( !empty($request->query('code')) ) $userList = $userList->where("uuid" , 'like' , $request->query('code') );
             if( $request->has('email') ) if( !empty($request->query('email')) )$userList = $userList->where("email" , 'like' , $request->query('email') );
             if( $request->has('name') ) if( !empty($request->query('name')) ) $userList = $userList->where("name" , 'like' , '%'.( $request->query('name') ).'%' );
+            if( $request->has('bot') ) if( !empty($request->query('bot')) ) $userList = $userList->where("is_bot" , ( $request->query('bot') ) );
 
             if( $request->has('plan') ){
                 if( !empty($request->query('plan')) ){
