@@ -36,7 +36,7 @@
             left: 0px;
             right: 0px;
             height: 80px;    /* Altura del pie de página */
-            
+
             /** Estilos adicionales **/
             text-align: center;
             color: #555;
@@ -87,9 +87,9 @@
                         <p>Bonos Patrocinio = <b>{{ $patrocinio }}</b></p>
                         <p>Bonos Residual = <b>{{ $residual + $pointAfiliado + $personalGlobal }}</b></p>
                         <p>Bonos Totales = <b>{{ $patrocinio + $residual + $pointAfiliado + $personalGlobal }}</b></p>
-                        <p>Bonos Grupales = <b>{{ $pointGroup }}</b></p>
-                        <p>Bonos por plan Actual = <b>{{ $compra + $personal }}</b></p>
-                        <p>Bonos Totales = <b>{{ $pointGroup + $compra + $personal }}</b></p>
+                        <p>Puntos Grupales = <b>{{ $pointGroup }}</b></p>
+                        <p>Puntos por plan Actual = <b>{{ $compra + $personal }}</b></p>
+                        <p>Puntos Totales = <b>{{ $pointGroup + $compra + $personal }}</b></p>
                         <p>Gran total = <b>{{ $totalPoint }}</b></p>
                     </td>
                     <td style="vertical-align: top;">
