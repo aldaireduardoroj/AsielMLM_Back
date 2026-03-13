@@ -99,7 +99,7 @@ class ResetUsersActive extends Command
 
                         $calculator = $this->calculator->points( $_user->uuid , $paymentOrderPoints , $paymentProductOrderPoints );
                         $calculatorPoint = $this->calculator->pointsTotal( $_user->uuid , $paymentOrderPoints , $paymentProductOrderPoints );
-                        
+
                         array_push( $jsonBody , (object) array(
                             "fullname" => $_user->name,
                             "email" => $_user->email,
@@ -121,7 +121,7 @@ class ResetUsersActive extends Command
                         ) );
                     }
 
-                    
+
 
                     // crear archivo excel
                     $excelBody = array();
@@ -137,10 +137,9 @@ class ResetUsersActive extends Command
                                 $json->points?->pointAfiliado ?? 0,
                                 $json->points?->patrocinio ?? 0,
                                 $json->points?->residual ?? 0,
-                                ( ($json->points?->pointAfiliado ?? 0) 
-                                    + ($json->points?->patrocinio ?? 0) 
-                                    + ($json->points?->residual ?? 0) 
-                                    + ( ($json->points?->personal ?? 0) * 0.02 ) 
+                                ( ($json->points?->pointAfiliado ?? 0)
+                                    + ($json->points?->patrocinio ?? 0)
+                                    + ($json->points?->residual ?? 0)
                                 ),
                                 $json->points?->compra ?? 0,
                                 $json->points->personal ?? 0,
@@ -187,7 +186,7 @@ class ResetUsersActive extends Command
 
                     $calculator = $this->calculator->points( $user->uuid , $paymentOrderPoints , $paymentProductOrderPoints );
                     $calculatorTotalPoint = $this->calculator->pointsTotal( $user->uuid , $paymentOrderPoints , $paymentProductOrderPoints );
-                    
+
                     $jsonBody = array(
                         "email" => $user->email,
                         "range" => $user->range == null ? "Sin Rango" : $user->range->range->title,
