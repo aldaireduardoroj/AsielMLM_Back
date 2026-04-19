@@ -247,8 +247,8 @@ class UserController extends BaseController
                 $paymentProductOrderPoints = PaymentProductOrderPoint::where("user_id" , $user->id)->where("state" , true)->get();
 
                 $a_userDirects = array_filter($paymentOrderPoint, fn($n) => strtolower($n->sponsor_code) == strtolower($user->uuid) && $n->payment == 1 );
-                $countTotal = $this->loopUsers($user->uuid, $paymentOrderPoint );
-                $countUserActive = 0;
+                $countUserActive = $this->loopUsers($user->uuid, $paymentOrderPoint );
+                // $countUserActive = 0;
                 
 
                 $calculatorPoint = $this->calculator->pointsTotal( $user->uuid , $paymentOrderPoints , $paymentProductOrderPoints );
@@ -257,7 +257,7 @@ class UserController extends BaseController
                 $userList[$key]->totalPoints = $calculatorPoint;
 
                 $userList[$key]->countDirects = count($a_userDirects);
-                $userList[$key]->countTotal = $countTotal;
+                // $userList[$key]->countTotal = $countTotal;
                 $userList[$key]->countUserActive = $countUserActive;
             }
 
@@ -279,7 +279,7 @@ class UserController extends BaseController
 
         foreach ($_a_userSponsor as $keyuserSponsor => $userSponsor)
         {
-            $activeUser = $userSponsor->paymentOrder && count($userSponsor->paymentOrder->payment_log) > 0 ? ($userSponsor->paymentOrder->payment_log[0]->state == 2 ? true : false) : false;
+            $activeUser = $userSponsor->paymentOrder && count($userSponsor->paymentOrder->paymentLog) > 0 ? ($userSponsor->paymentOrder->paymentLog[0]->state == 2 ? true : false) : false;
             if( $activeUser ) $countUserActive++;
 
             $countUserActive += $this->loopUsers( $userSponsor->user_code , $points);
