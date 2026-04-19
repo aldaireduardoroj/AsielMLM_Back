@@ -232,7 +232,7 @@ class UserController extends BaseController
 
             $paymentOrderPoint = PaymentOrderPoint::select('user_code','sponsor_code','type','payment', 'created_at')
                 ->with(['paymentOrder'])->where("type" , PaymentOrderPoint::COMPRA )
-                ->distinct()->orderBy('created_at', 'desc')->toArray();
+                ->distinct()->orderBy('created_at', 'desc')->get()->toArray();
 
             foreach ($userList as $key => $user) {
                 $userList[$key]->payment = PaymentLog::with(['paymentOrder.pack' , 'paymentOrder.sponsor.file'])->where( "user_id" ,  $user->id )
