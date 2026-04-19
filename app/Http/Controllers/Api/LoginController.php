@@ -77,7 +77,8 @@ class LoginController extends BaseController
                 'name'     => $request->name,
                 'email'    => $request->email,
                 'uuid'     => $request->dni,
-                'password' => bcrypt($request->password)
+                'password' => bcrypt($request->password),
+                'country'  => $request?->country ?? ''
             ]);
 
             $codeGenerator = new CodeGenerator();

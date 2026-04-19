@@ -229,6 +229,11 @@ class UserController extends BaseController
 
             $paymentOrderPoints = PaymentOrderPoint::with(['paymentOrder'])->where('state' , true)->get();
 
+
+            $paymentOrderPoint = PaymentOrderPoint::select('user_code','sponsor_code','type','payment', 'created_at')
+                ->with(['paymentOrder'])->where("type" , PaymentOrderPoint::COMPRA )
+                ->distinct()->orderBy('created_at', 'desc')->get();
+
             foreach ($userList as $key => $user) {
                 $userList[$key]->payment = PaymentLog::with(['paymentOrder.pack' , 'paymentOrder.sponsor.file'])->where( "user_id" ,  $user->id )
                     ->where( function ($query) {
@@ -241,10 +246,23 @@ class UserController extends BaseController
                 $_id = $user->id;
                 $paymentProductOrderPoints = PaymentProductOrderPoint::where("user_id" , $user->id)->where("state" , true)->get();
 
+                $a_userDirects = array_filter($paymentOrderPoint, fn($n) => strtolower($n->sponsor_code) == strtolower($userModel->uuid) && $n->payment == 1 );
+                $a_userSponsor = array_filter($paymentOrderPoint, fn($n) => strtolower($n->sponsor_code) == strtolower($userModel->uuid) && $n->payment == 1 && $n->type != "G" );
+                $countUserActive = 0;
+                foreach ($a_userSponsor as $keyuserSponsor => $userSponsor)
+                {
+                    $activeUser = $userSponsor->paymentOrder && count($userSponsor->paymentOrder->payment_log) > 0 ? ($userSponsor->paymentOrder->payment_log[0]->state == 2 ? true : false) : false;
+                    if( $activeUser ) $countUserActive++;
+                }
+
                 $calculatorPoint = $this->calculator->pointsTotal( $user->uuid , $paymentOrderPoints , $paymentProductOrderPoints );
-                
+
                 $userList[$key]->points = $this->calculator->points( $user->uuid , $paymentOrderPoints , $paymentProductOrderPoints );
                 $userList[$key]->totalPoints = $calculatorPoint;
+
+                $userList[$key]->countDirects = count($a_userDirects);
+                $userList[$key]->countTotal = count($a_userSponsor);
+                $userList[$key]->countUserActive = $countUserActive;
             }
 
             // $userList = $userList
@@ -355,7 +373,7 @@ class UserController extends BaseController
                         }
 
                         $sponsorId = $this->confirmPointService->verifyChildNewSponsor( $dataBody->sponsorNew );
-                        
+
                         $_paymentOrder = PaymentOrder::create(
                             array(
                                 'currency' => "PEN",
@@ -531,7 +549,7 @@ class UserController extends BaseController
                 BaseExcel::XLSX
             );
             // $subject = "Purchase Order";
-            
+
             $mailData = [
                 'customer_name' => "Edwin",
                 'month' => "Febrero",
@@ -731,7 +749,7 @@ class UserController extends BaseController
 
                         $calculator = $this->calculator->points( $_user->uuid , $paymentOrderPoints , $paymentProductOrderPoints );
                         $calculatorPoint = $this->calculator->pointsTotal( $_user->uuid , $paymentOrderPoints , $paymentProductOrderPoints );
-                        
+
                         array_push( $jsonBody , (object) array(
                             "fullname" => $_user->name,
                             "email" => $_user->email,
@@ -753,7 +771,7 @@ class UserController extends BaseController
                         ) );
                     }
 
-                    
+
 
                     // crear archivo excel
                     $excelBody = array();
@@ -769,10 +787,10 @@ class UserController extends BaseController
                                 $json->points?->pointAfiliado ?? 0,
                                 $json->points?->patrocinio ?? 0,
                                 $json->points?->residual ?? 0,
-                                ( ($json->points?->pointAfiliado ?? 0) 
-                                    + ($json->points?->patrocinio ?? 0) 
-                                    + ($json->points?->residual ?? 0) 
-                                    + ( ($json->points?->personal ?? 0) * 0.02 ) 
+                                ( ($json->points?->pointAfiliado ?? 0)
+                                    + ($json->points?->patrocinio ?? 0)
+                                    + ($json->points?->residual ?? 0)
+                                    + ( ($json->points?->personal ?? 0) * 0.02 )
                                 ),
                                 $json->points?->compra ?? 0,
                                 $json->points->personal ?? 0,
@@ -819,7 +837,7 @@ class UserController extends BaseController
 
                     $calculator = $this->calculator->points( $user->uuid , $paymentOrderPoints , $paymentProductOrderPoints );
                     $calculatorTotalPoint = $this->calculator->pointsTotal( $user->uuid , $paymentOrderPoints , $paymentProductOrderPoints );
-                    
+
                     $jsonBody = array(
                         "email" => $user->email,
                         "range" => $user->range == null ? "Sin Rango" : $user->range->range->title,
@@ -1034,7 +1052,7 @@ class UserController extends BaseController
                     if( !$isdiscount ){
                         $totalAmount +=  ($product->price  *  $productDetail->quantity );
                     }
-                    
+
 
                     $productPointPack = ProductPointPack::where("product_id" , $product->id )->where("pack_id" , $paymentLog?->paymentOrder?->pack_id)->first();
                     if(  $productPointPack == null ) $totalPoints += 0;
@@ -1149,7 +1167,7 @@ class UserController extends BaseController
                     );
 
                     $this->confirmPoint($_paymentOrder , $userUpdated , $paymentLog->paymentOrder->pack, true);
-                    
+
                     $_paymentLog = PaymentLog::create(
                         array(
                             'payment_order_id' => $_paymentOrder->id,
@@ -1159,7 +1177,7 @@ class UserController extends BaseController
                         )
                     );
                 }
-                
+
             }
 
             $this->confirmPointAfiliado( $userUpdated , $totalPoints);
@@ -1186,7 +1204,7 @@ class UserController extends BaseController
 
             $paymentOrderPoints = PaymentOrderPoint::with(['paymentOrder.paymentLog', 'userPoint.paymentActive'])
                 ->whereRaw('MONTH(created_at) = ?', [$month])->whereRaw('YEAR(created_at) = ?', [$year])
-                // ->whereMonth('created_at', $oneMonthAgo->format('m'))->whereYear('created_at', $oneMonthAgo->format('Y'))    
+                // ->whereMonth('created_at', $oneMonthAgo->format('m'))->whereYear('created_at', $oneMonthAgo->format('Y'))
                 ->get();
 
             $patrocinioUserActive = 0;
@@ -1303,7 +1321,7 @@ class UserController extends BaseController
 
             //     $calculator = $this->calculator->points( $_user->uuid , $paymentOrderPoints , $paymentProductOrderPoints );
             //     $calculatorPoint = $this->calculator->pointsTotal( $_user->uuid , $paymentOrderPoints , $paymentProductOrderPoints );
-                
+
             //     array_push( $jsonBody , (object) array(
             //         "fullname" => $_user->name,
             //         "email" => $_user->email,
@@ -1339,10 +1357,10 @@ class UserController extends BaseController
             //             $json->points?->pointAfiliado ?? 0,
             //             $json->points?->patrocinio ?? 0,
             //             $json->points?->residual ?? 0,
-            //             ( ($json->points?->pointAfiliado ?? 0) 
-            //                 + ($json->points?->patrocinio ?? 0) 
-            //                 + ($json->points?->residual ?? 0) 
-            //                 + ( ($json->points?->personal ?? 0) * 0.02 ) 
+            //             ( ($json->points?->pointAfiliado ?? 0)
+            //                 + ($json->points?->patrocinio ?? 0)
+            //                 + ($json->points?->residual ?? 0)
+            //                 + ( ($json->points?->personal ?? 0) * 0.02 )
             //             ),
             //             $json->points?->compra ?? 0,
             //             $json->points->personal ?? 0,
@@ -1424,7 +1442,7 @@ class UserController extends BaseController
             //     ->get();
 
             // $calculatorPoint = $this->calculator->points( $userModel->uuid , $paymentOrderPoints , $paymentProductOrderPoints);
-            // $totalPoint = $this->calculator->pointsTotal( $userModel->uuid , $paymentOrderPoints , $paymentProductOrderPoints);        
+            // $totalPoint = $this->calculator->pointsTotal( $userModel->uuid , $paymentOrderPoints , $paymentProductOrderPoints);
 
             // $userModel->payment = $payment;
             // $userModel->podints = $calculatorPoint;
@@ -1546,7 +1564,7 @@ class UserController extends BaseController
             }])->select('id', 'user_id', 'state','created_at' , DB::raw('0 as plan') , 'pack_id' ,'phone' ,'points' , 'discount' , DB::raw("'' as payment_order_id") )->whereIn("state", [PaymentProductOrder::PAGADO , PaymentProductOrder::ENVIADO, PaymentProductOrder::PREORDER ]); // ->with(['user','pack','details']);
             $userNameCurrentIds = array();
             if( $userCodeCurrent != null ){
-                
+
                 $paymentProductOrderList = $paymentProductOrderList->where("user_id" , $userCodeCurrent->id);
             }
 
@@ -1763,7 +1781,7 @@ class UserController extends BaseController
 
     public function invitedUserCode(Request $request)
     {
-        
+
         try {
             $userId = Auth::id();
             $userModel = User::with([ 'paymentActive' ])->find($userId);
@@ -1850,7 +1868,7 @@ class UserController extends BaseController
             $packCurrent = Pack::find($dataBody->plan);
 
             if( $packCurrent == null ) return $this->sendError( "No se existe el plan seleccionado" );
-            
+
             $orderId = uniqid( $packCurrent->title );
 
             $userCreated = User::create([
@@ -1869,7 +1887,7 @@ class UserController extends BaseController
                 'code' => $codeGenerator->generate(),
                 "state" => true
             ]);
-                        
+
             $_paymentOrder = PaymentOrder::create(
                 array(
                     'currency' => "PEN",
@@ -1938,7 +1956,7 @@ class UserController extends BaseController
 
     public function getVideoImageStory(Request $request)
     {
-        try { 
+        try {
             $userId = Auth::id();
             DB::beginTransaction();
 
@@ -1958,7 +1976,7 @@ class UserController extends BaseController
 
     public function deleteVideoImageStory(Request $request)
     {
-        try { 
+        try {
             $userId = Auth::id();
             DB::beginTransaction();
 
@@ -1982,7 +2000,7 @@ class UserController extends BaseController
         $paymentLogsCount = PaymentLog::where( "user_id" , $userCurrent->id )
                 ->whereIn("state" , [PaymentLog::TERMINADO, PaymentLog::PAGADO] )->count();
 
-        
+
 
         // puntos patrocinio
         $sponsorshipPoint = SponsorshipPoint::where("pack_id" , $paymentOrder->pack_id)->first();
@@ -2003,7 +2021,7 @@ class UserController extends BaseController
                     'user_id' => $userCurrent->id
                 ));
             }
-            
+
             // pago puntos patrocinio
             $level = $sponsorshipPoint->level1;
             $point = floatval($packCurrent->points) * floatval($level) / 100;
@@ -2039,7 +2057,7 @@ class UserController extends BaseController
             // $option = Option::where("option_key", 'point_residual')->first();
             // // floatval($packCurrent->points)
             // $point = ( floatval($option->option_value) ) * floatval($level) / 100;
-            
+
             //-- se paso a la opcion de compras
             // PaymentOrderPoint::create(array(
             //     'payment_order_id' => $paymentOrder->id,
@@ -2123,8 +2141,8 @@ class UserController extends BaseController
                 ));
             }
         }
-        
-        
+
+
     }
 
     private function confirmPointAfiliado( $userCurrent, $points )
@@ -2140,7 +2158,7 @@ class UserController extends BaseController
                 $_paymentOrderPoints = $this->loopTree( array() , $userCurrent->uuid );
 
                 $afiliadosPoint = RangeUser::where("user_id", $userCurrent->id)->where("status", true)->first();
-                
+
                 $rangeResidualPoints = ResidualPoint::first();
 
                 if( $afiliadosPoint != null ){
@@ -2151,7 +2169,7 @@ class UserController extends BaseController
 
                 foreach ($_paymentOrderPoints as $key => $_paymentOrderPoint) {
                     $_paymentOrderPoint = (object) $_paymentOrderPoint;
-                    $key++; 
+                    $key++;
 
                     PaymentOrderPoint::create(array(
                         'payment_order_id' => $paymentLog->payment_order_id,
@@ -2166,7 +2184,7 @@ class UserController extends BaseController
                     if( $key > 7 ) continue;
 
                     $level = $rangeResidualPoints->{'level'.($key)};
-                    
+
                     $point = $points * floatval($level) / 100;
 
                     // antes PaymentOrderPoint::AFILIADOS
@@ -2187,11 +2205,11 @@ class UserController extends BaseController
                         'points'    => $points,
                         'level' => $key
                     ));
-                    
+
                 }
-                
+
             }
-            
+
         }
     }
 
