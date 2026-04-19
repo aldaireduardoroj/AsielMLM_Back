@@ -282,7 +282,7 @@ class UserController extends BaseController
             $activeUser = $userSponsor->paymentOrder && count($userSponsor->paymentOrder->payment_log) > 0 ? ($userSponsor->paymentOrder->payment_log[0]->state == 2 ? true : false) : false;
             if( $activeUser ) $countUserActive++;
 
-            $countUserActive = $this->loopUsers( $userSponsor->user_code , $points);
+            $countUserActive += $this->loopUsers( $userSponsor->user_code , $points);
         }
 
         return $countUserActive;
