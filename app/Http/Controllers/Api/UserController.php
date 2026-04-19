@@ -246,8 +246,8 @@ class UserController extends BaseController
                 $_id = $user->id;
                 $paymentProductOrderPoints = PaymentProductOrderPoint::where("user_id" , $user->id)->where("state" , true)->get();
 
-                $a_userDirects = array_filter($paymentOrderPoint, fn($n) => strtolower($n->sponsor_code) == strtolower($userModel->uuid) && $n->payment == 1 );
-                $a_userSponsor = array_filter($paymentOrderPoint, fn($n) => strtolower($n->sponsor_code) == strtolower($userModel->uuid) && $n->payment == 1 && $n->type != "G" );
+                $a_userDirects = array_filter($paymentOrderPoint, fn($n) => strtolower($n->sponsor_code) == strtolower($user->uuid) && $n->payment == 1 );
+                $a_userSponsor = array_filter($paymentOrderPoint, fn($n) => strtolower($n->sponsor_code) == strtolower($user->uuid) && $n->payment == 1 && $n->type != "G" );
                 $countUserActive = 0;
                 foreach ($a_userSponsor as $keyuserSponsor => $userSponsor)
                 {
