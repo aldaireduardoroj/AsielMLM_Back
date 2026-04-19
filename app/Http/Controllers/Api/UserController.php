@@ -231,7 +231,7 @@ class UserController extends BaseController
 
 
             $paymentOrderPoint = PaymentOrderPoint::select('user_code','sponsor_code','type','payment', 'created_at')
-                ->with(['paymentOrder'])->where("type" , PaymentOrderPoint::COMPRA )
+                ->with(['paymentOrder.paymentLog'])->where("type" , PaymentOrderPoint::COMPRA )
                 ->distinct()->orderBy('created_at', 'desc')->get()->all();
 
             foreach ($userList as $key => $user) {
@@ -247,13 +247,9 @@ class UserController extends BaseController
                 $paymentProductOrderPoints = PaymentProductOrderPoint::where("user_id" , $user->id)->where("state" , true)->get();
 
                 $a_userDirects = array_filter($paymentOrderPoint, fn($n) => strtolower($n->sponsor_code) == strtolower($user->uuid) && $n->payment == 1 );
-                $a_userSponsor = array_filter($paymentOrderPoint, fn($n) => strtolower($n->sponsor_code) == strtolower($user->uuid) && $n->payment == 1 && $n->type != "G" );
+                $countTotal = $this->loopUsers($user->uuid, $paymentOrderPoint );
                 $countUserActive = 0;
-                foreach ($a_userSponsor as $keyuserSponsor => $userSponsor)
-                {
-                    $activeUser = $userSponsor->paymentOrder && count($userSponsor->paymentOrder->payment_log) > 0 ? ($userSponsor->paymentOrder->payment_log[0]->state == 2 ? true : false) : false;
-                    if( $activeUser ) $countUserActive++;
-                }
+                
 
                 $calculatorPoint = $this->calculator->pointsTotal( $user->uuid , $paymentOrderPoints , $paymentProductOrderPoints );
 
@@ -261,7 +257,7 @@ class UserController extends BaseController
                 $userList[$key]->totalPoints = $calculatorPoint;
 
                 $userList[$key]->countDirects = count($a_userDirects);
-                $userList[$key]->countTotal = count($a_userSponsor);
+                $userList[$key]->countTotal = $countTotal;
                 $userList[$key]->countUserActive = $countUserActive;
             }
 
@@ -273,6 +269,23 @@ class UserController extends BaseController
 
             return $this->sendError( $th->getMessage());
         }
+    }
+
+    private function loopUsers( string $codeUuid , $points )
+    {
+        $countUserActive = 0;
+
+        $_a_userSponsor = array_filter($points, fn($n) => strtolower($n->sponsor_code) == strtolower($codeUuid) && $n->payment == 1 && $n->type != "G" );
+
+        foreach ($_a_userSponsor as $keyuserSponsor => $userSponsor)
+        {
+            $activeUser = $userSponsor->paymentOrder && count($userSponsor->paymentOrder->payment_log) > 0 ? ($userSponsor->paymentOrder->payment_log[0]->state == 2 ? true : false) : false;
+            if( $activeUser ) $countUserActive++;
+
+            $countUserActive = $this->loopUsers( $userSponsor->user_code , $points);
+        }
+
+        return $countUserActive;
     }
 
     public function modifyUser( Request $request )
