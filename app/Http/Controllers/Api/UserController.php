@@ -282,7 +282,7 @@ class UserController extends BaseController
 
             if( $_userModel->paymentActive ) $countUserActive++;
 
-            $countUserActive += $this->loopUsers( $userSponsor->user_code , $points, $countUserActive);
+            $countUserActive += $this->loopUsersActive( $userSponsor->user_code , $points, $countUserActive);
         }
 
         return $countUserActive;
@@ -297,7 +297,7 @@ class UserController extends BaseController
         foreach ($_a_userSponsor as $keyuserSponsor => $userSponsor)
         {
 
-            $countUserAll += $this->loopUsers( $userSponsor->user_code , $points, $countUserAll);
+            $countUserAll += $this->loopUsersAll( $userSponsor->user_code , $points, $countUserAll);
         }
 
         return $countUserAll;
