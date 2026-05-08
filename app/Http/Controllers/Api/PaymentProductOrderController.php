@@ -1235,7 +1235,7 @@ class PaymentProductOrderController extends BaseController
                 foreach ($_paymentOrderPoints as $key => $_paymentOrderPoint) {
                     $_paymentOrderPoint = (object) $_paymentOrderPoint;
                     $key++; 
-                    if( $key > 7 ) continue;
+                    if( $key > 9 ) continue;
 
                     $level = $rangeResidualPoints->{'level'.($key)};
                     

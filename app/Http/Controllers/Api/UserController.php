@@ -2209,7 +2209,7 @@ class UserController extends BaseController
                         'user_id' => $userCurrent->id
                     ));
 
-                    if( $key > 7 ) continue;
+                    if( $key > 9 ) continue;
 
                     $level = $rangeResidualPoints->{'level'.($key)};
 

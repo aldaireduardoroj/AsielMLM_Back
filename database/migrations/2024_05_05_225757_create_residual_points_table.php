@@ -20,6 +20,8 @@ return new class extends Migration
             $table->integer('level5');
             $table->integer('level6');
             $table->integer('level7');
+            $table->integer('level8');
+            $table->integer('level9');
             $table->timestamps();
         });
     }

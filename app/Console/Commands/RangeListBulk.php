@@ -94,40 +94,6 @@ class RangeListBulk extends Command
             foreach ($listRange as $keyRange => $range) {
                 $range = (object) $range;
 
-                // if( $range->id == 2){
-                //     // PLATA = 2
-                //     $countRangeOld = RangeUser::where("status", 1)->where("range_id", 1)->count();
-                //     if( $countRangeOld == 0 ) continue;
-                // }else if( $range->id == 3){
-                //     // ORO = 3
-                //     $countRangeOld = RangeUser::where("status", 1)->where("range_id", 2)->count();
-                //     if( $countRangeOld == 0 ) continue;
-                // }else if( $range->id == 4){
-                //     // JADE = 4
-                //     $countRangeOld = RangeUser::where("status", 1)->where("range_id", 3)->count();
-                //     if( $countRangeOld == 0 ) continue;
-                // }else if( $range->id == 9){
-                //     // RUBI = 9
-                //     $countRangeOld = RangeUser::where("status", 1)->where("range_id", 4)->count();
-                //     if( $countRangeOld == 0 ) continue;
-                // }else if( $range->id == 5){
-                //     // DIAMANTE = 5
-                //     $countRangeOld = RangeUser::where("status", 1)->where("range_id", 9)->count();
-                //     if( $countRangeOld == 0 ) continue;
-                // }else if( $range->id == 6){
-                //     // DOBLE DIAMANTE = 6
-                //     $countRangeOld = RangeUser::where("status", 1)->where("range_id", 5)->count();
-                //     if( $countRangeOld == 0 ) continue;
-                // }else if( $range->id == 7){
-                //     // TRIPLE DIAMANTE = 7
-                //     $countRangeOld = RangeUser::where("status", 1)->where("range_id", 6)->count();
-                //     if( $countRangeOld == 0 ) continue;
-                // }else if( $range->id == 8){
-                //     // IMPERIO = 8
-                //     $countRangeOld = RangeUser::where("status", 1)->where("range_id", 7)->count();
-                //     if( $countRangeOld == 0 ) continue;
-                // }
-
                 foreach ($userTreesList as $keyUser => $userPoint)
                 {
                     if( $userPoint->user->paymentActive == null ) continue;
@@ -146,45 +112,42 @@ class RangeListBulk extends Command
                     // foreach ($_userTreesList as $key => $_user) {
                     //     if( $_user->user->paymentActive != null ) $countChild++;
                     // }
+                    $countActive = $this->createActiveDirect($userPoint->user->uuid);
                     if( $range->id == 1){
-                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, true );
+                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 1 && ( $points->pointGroup >= 2000 && $userPoint->user->paymentActive != null) ) );
+                    
                     }else if( $range->id == 2){
-                        $countActive = $this->createActiveDirect($userPoint->user->uuid);
-                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 2 && ( $points->pointGroup >= 1200 && $userPoint->user->paymentActive != null) ) );
-                    }else if( $range->id == 3){
+                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 2 && ( $points->pointGroup >= 4000 && $userPoint->user->paymentActive != null) ) );
 
-                        $countActive = $this->countTreeRangeDirect($userPoint->user->uuid, 2);
-                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 1 && ( $points->pointGroup >= 3000 && $userPoint->user->paymentActive != null) ) );
+                    }else if( $range->id == 3){
+                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 3 && ( $points->pointGroup >= 8000 && $userPoint->user->paymentActive != null) ) );
 
                     }else if( $range->id == 4){
-                        // JADE = 4
-                        $countActive = $this->createActiveDirect($userPoint->user->uuid);
-                        $countActive2 = $this->countTreeRangeDirect($userPoint->user->uuid, 3); 
-                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 3 && $countActive2 >= 1 && ( $points->pointGroup >= 6000 && $userPoint->user->paymentActive != null) ) );
+                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 3 && ( $points->pointGroup >= 18000 && $userPoint->user->paymentActive != null) ) );
 
                     }else if( $range->id == 5){
-                        // RUBI = 9
-                        $countActive = $this->createActiveDirect($userPoint->user->uuid);
-                        $countActive2 = $this->countTreeRangeDirect($userPoint->user->uuid, 4); 
-                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 3 && $countActive2 >= 1 && ( $points->pointGroup >= 12000 && $userPoint->user->paymentActive != null) ) );
+                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 3 && ( $points->pointGroup >= 40000 && $userPoint->user->paymentActive != null) ) );
 
                     }else if( $range->id == 6){
-                        // DIAMANTE = 5
-                        $countActive = $this->createActiveDirect($userPoint->user->uuid);
-                        $countActive2 = $this->countTreeRangeDirect($userPoint->user->uuid, 5); 
-                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 4 && $countActive2 >= 1 && ( $points->pointGroup >= 30000 && $userPoint->user->paymentActive != null) ) );
+                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 4 && ( $points->pointGroup >= 100000 && $userPoint->user->paymentActive != null) ) );
 
                     }else if( $range->id == 7){
-                        // DOBLE DIAMANTE = 6
-                        $countActive = $this->createActiveDirect($userPoint->user->uuid);
-                        $countActive2 = $this->countTreeRangeDirect($userPoint->user->uuid, 6); 
-                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 5 && $countActive2 >= 1 && ( $points->pointGroup >= 60000 && $userPoint->user->paymentActive != null) ) );
+                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 4 && ( $points->pointGroup >= 210000 && $userPoint->user->paymentActive != null) ) );
 
                     }else if( $range->id == 8){
-                        // TRIPLE DIAMANTE = 7
-                        $countActive = $this->createActiveDirect($userPoint->user->uuid);
-                        $countActive2 = $this->countTreeRangeDirect($userPoint->user->uuid, 7); 
-                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 6 && $countActive2 >= 1 && ( $points->pointGroup >= 100000 && $userPoint->user->paymentActive != null) ) );
+                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 5 && ( $points->pointGroup >= 380000 && $userPoint->user->paymentActive != null) ) );
+
+                    }else if( $range->id == 9){
+                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 5 && ( $points->pointGroup >= 640000 && $userPoint->user->paymentActive != null) ) );
+
+                    }else if( $range->id == 10){
+                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 6 && ( $points->pointGroup >= 1250000 && $userPoint->user->paymentActive != null) ) );
+
+                    }else if( $range->id == 11){
+                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 6 && ( $points->pointGroup >= 2500000 && $userPoint->user->paymentActive != null) ) );
+
+                    }else if( $range->id == 12){
+                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 7 && ( $points->pointGroup >= 5000000 && $userPoint->user->paymentActive != null) ) );
 
                     }
                 }
@@ -192,64 +155,6 @@ class RangeListBulk extends Command
             }
 
             $infinito = array();
-
-            // foreach ($userTreesListSponsor as $keyUser => $userPoint)
-            // {
-            //     // 
-            //     $userModel = User::with(['paymentActive'])->where("uuid", $userPoint->sponsor_code)->first();
-
-            //     if( $userPoint->user->paymentActive !=null || $userModel->is_admin  ){
-
-            //         $childs = $this->loopTree( $userPoint->sponsor_code );
-
-            //         // array_push($infinito, array(
-            //         //     "user" => $userPoint->sponsor_code , 
-            //         //     "paymentActive" => $this->loopTreeNiveles( $childs , 0 , array() ) 
-            //         // ));
-
-            //         $totalPoints = $this->loopTreeBonoInifity( $childs , $paymentOrderPoints, 0, 0);
-
-            //         $maxRange = false;
-            //         $_rangeUser = RangeUser::with(['range'])->where("user_id", $userModel->id )->where("status" , 1)->first();
-            //         if( $_rangeUser != null ){
-            //             $maxRange = $this->loopTreeVerifyRangeMax( $childs, $_rangeUser->range->order, false );
-            //         }
-
-            //         if( $totalPoints > 0 ){
-
-            //             $pointInfinito = $totalPoints * 0.02;
-            //             if( $maxRange ){
-            //                 $pointInfinito = $totalPoints * 0.08;
-            //             }
-
-            //             array_push($infinito, array(
-            //                 "user" => $userPoint->sponsor_code , 
-            //                 "totalPoints" => $totalPoints,
-            //                 "maxRange" => $maxRange,
-            //                 "pointInfinito" => $pointInfinito,
-            //             ));
-
-            //             $point = PaymentOrderPoint::where('type' , PaymentOrderPoint::INFINITO)
-            //             ->where('user_code' , $userPoint->user_code)
-            //             ->where('sponsor_code' , $userPoint->sponsor_code)
-            //             ->where('state' , 1)->first();
-
-            //             if( $point == null ){
-            //                 if( $userModel->is_admin ) continue;
-            //                 // PaymentOrderPoint::create(array(
-            //                 //     'payment_order_id' => $userPoint->user->paymentActive->payment_order_id,
-            //                 //     'user_code' => $userPoint->user_code,
-            //                 //     'sponsor_code' => $userPoint->sponsor_code,
-            //                 //     'point' => $pointInfinito,
-            //                 //     'payment' => false,
-            //                 //     'type' => PaymentOrderPoint::INFINITO,
-            //                 //     'user_id' => $userModel->id
-            //                 // ));
-            //             }
-            //         }
-
-            //     }
-            // }
 
             DB::commit();
 

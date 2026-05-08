@@ -21,6 +21,8 @@ return new class extends Migration
             $table->decimal('level5' , 18, 4);
             $table->decimal('level6' , 18, 4);
             $table->decimal('level7' , 18, 4);
+            $table->decimal('level8' , 18, 4);
+            $table->decimal('level9' , 18, 4);
             $table->timestamps();
         });
     }
