@@ -1923,26 +1923,30 @@ class UserController extends BaseController
                 "state" => true
             ]);
 
-            $_paymentOrder = PaymentOrder::create(
-                array(
-                    'currency' => PaymentOrder::CURRENCY,
-                    'amount' => $packCurrent->price,
-                    'sponsor_code' => $sponsorId,
-                    'pack_id' => $dataBody->plan,
-                    "token" => $orderId
-                )
-            );
+            if( $dataBody->plan != null ){
+                $_paymentOrder = PaymentOrder::create(
+                    array(
+                        'currency' => PaymentOrder::CURRENCY,
+                        'amount' => $packCurrent->price,
+                        'sponsor_code' => $sponsorId,
+                        'pack_id' => $dataBody->plan,
+                        "token" => $orderId
+                    )
+                );
 
-            $this->paymentOrderService->confirmPoint($_paymentOrder , $userCreated , $packCurrent);
+                $this->paymentOrderService->confirmPoint($_paymentOrder , $userCreated , $packCurrent);
 
-            $_paymentLog = PaymentLog::create(
-                array(
-                    'payment_order_id' => $_paymentOrder->id,
-                    "confirm" => true,
-                    'user_id' => $userCreated->id,
-                    "state" => PaymentLog::PAGADO,
-                )
-            );
+                $_paymentLog = PaymentLog::create(
+                    array(
+                        'payment_order_id' => $_paymentOrder->id,
+                        "confirm" => true,
+                        'user_id' => $userCreated->id,
+                        "state" => PaymentLog::PAGADO,
+                    )
+                );
+            }
+
+
 
             DB::commit();
             return $this->sendResponse(1 , '');
