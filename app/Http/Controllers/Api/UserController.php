@@ -1891,7 +1891,7 @@ class UserController extends BaseController
 
             if(  $userExistDni != null ) return $this->sendError( "Este DNI ya existe" );
 
-            if( $dataBody->sponsor != null ){
+            if( $dataBody->plan != null ){
 
                 $sponsor = User::where("uuid" , $dataBody->sponsor)->first();
 
