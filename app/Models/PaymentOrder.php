@@ -8,6 +8,7 @@ use App\Traits\Uuid;
 
 class PaymentOrder extends Model
 {
+    const CURRENCY = 'PEN';
     use HasFactory, Uuid;
 
     public $incrementing = false;

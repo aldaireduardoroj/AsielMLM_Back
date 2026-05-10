@@ -57,6 +57,8 @@ use App\Models\VideoImageStory;
 use App\Models\RangeResidualPoints;
 use App\Models\GeneratonialResidualPoints;
 
+use App\Services\Core\PaymentOrderService;
+
 
 class UserController extends BaseController
 {
@@ -71,6 +73,8 @@ class UserController extends BaseController
     private $imageStoryUploadPath;
     private $videoPreviewStoryUploadPath;
 
+    private $paymentOrderService;
+
     public function __construct() {
         $this->fileUpload = new FileUpload();
         $this->fileUploadPath = 'avatar';
@@ -79,6 +83,8 @@ class UserController extends BaseController
         $this->imageStoryUploadPath = 'image-story';
         $this->calculator = new Calculator();
         $this->confirmPointService = new ConfirmPointService();
+
+        $this->paymentOrderService = new PaymentOrderService();
     }
 
     public function auth()
@@ -250,7 +256,7 @@ class UserController extends BaseController
                 $countUserActive = $this->loopUsersActive($user->uuid, $paymentOrderPoint );
                 $countUserAll = $this->loopUsersAll($user->uuid, $paymentOrderPoint );
                 // $countUserActive = 0;
-                
+
 
                 $calculatorPoint = $this->calculator->pointsTotal( $user->uuid , $paymentOrderPoints , $paymentProductOrderPoints );
 
@@ -1885,19 +1891,20 @@ class UserController extends BaseController
 
             if(  $userExistDni != null ) return $this->sendError( "Este DNI ya existe" );
 
-            $sponsor = User::where("uuid" , $dataBody->sponsor)->first();
+            if( $dataBody->sponsor != null ){
 
-            if( $sponsor == null ) return $this->sendError('Codigo de Patronisador no existe.');
+                $sponsor = User::where("uuid" , $dataBody->sponsor)->first();
 
-            // if( $this->confirmPointService->maxChilds( $dataBody->sponsor ) ) return $this->sendError('Tu patrocinador esta al limite de invitados.');
+                if( $sponsor == null ) return $this->sendError('Codigo de Patronisador no existe.');
 
-            $sponsorId = $this->confirmPointService->verifyChildNewSponsor( $dataBody->sponsor );
+                $sponsorId = $sponsor->id;
 
-            $packCurrent = Pack::find($dataBody->plan);
+                $packCurrent = Pack::find($dataBody->plan);
 
-            if( $packCurrent == null ) return $this->sendError( "No se existe el plan seleccionado" );
+                if( $packCurrent == null ) return $this->sendError( "No se existe el plan seleccionado" );
 
-            $orderId = uniqid( $packCurrent->title );
+                $orderId = uniqid( $packCurrent->title );
+            }
 
             $userCreated = User::create([
                 'name'     => $dataBody->name,
@@ -1918,7 +1925,7 @@ class UserController extends BaseController
 
             $_paymentOrder = PaymentOrder::create(
                 array(
-                    'currency' => "PEN",
+                    'currency' => PaymentOrder::CURRENCY,
                     'amount' => $packCurrent->price,
                     'sponsor_code' => $sponsorId,
                     'pack_id' => $dataBody->plan,
@@ -1926,7 +1933,7 @@ class UserController extends BaseController
                 )
             );
 
-            $this->confirmPoint($_paymentOrder , $userCreated , $packCurrent);
+            $this->paymentOrderService->confirmPoint($_paymentOrder , $userCreated , $packCurrent);
 
             $_paymentLog = PaymentLog::create(
                 array(
