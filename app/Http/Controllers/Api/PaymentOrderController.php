@@ -20,6 +20,9 @@ use App\Models\Option;
 use App\Models\LogPayment;
 use App\Models\PaymentProductOrder;
 use App\Models\PaymentProductOrderPoint;
+use App\Models\ProductPointPack;
+use App\Models\Product;
+use App\Models\PaymentProductOrderDetail;
 use App\Services\Flow\FlowPayment;
 use App\Services\Core\Calculator;
 use App\Services\Core\ConfirmPointService;
@@ -877,6 +880,7 @@ class PaymentOrderController extends BaseController
         $validator = Validator::make( $request->all() , [
             'packId' => 'required|exists:packs,id',
             'sponsorId'    => 'required',
+            'products'      => 'required',
             'file' => 'required|file'
         ]);
 
@@ -891,7 +895,7 @@ class PaymentOrderController extends BaseController
 
             if( $sponsor == null ) return $this->sendError('Codigo de Patronisador no existe.');
 
-            $packCurrent = Pack::find( $dataBody->packId);
+            $packCurrent = Pack::find( $dataBody->packId );
 
             if( $packCurrent == null ) return $this->sendError( "El plan no existe" );
 
@@ -938,6 +942,70 @@ class PaymentOrderController extends BaseController
             //     )
             // );
 
+            $productIds = array();
+
+            $dataBody->details = json_decode($dataBody->details);
+
+            if( count( $dataBody->details ) == 0 ) return $this->sendError( "No se encuentra productos" );
+
+            foreach( $dataBody->details as $key => $product ) {
+                $product = (object) $product;
+                array_push($productIds , $product->product);
+            }
+
+            $productList = Product::with(['discounts'])->whereIn('id' , $productIds)->get();
+
+            $productListCreate = array();
+
+            $paymentProductOrder = PaymentProductOrder::create(
+                array(
+                    'currency'  => 'PEN',
+                    'amount'    => $totalAmount,
+                    'discount'  => 0,
+                    'points'    => $totalPoints,
+                    'user_id'   => $userId,
+                    'pack_id'   => $dataBody->packId,
+                    'phone'     => $dataBody->phone,
+                    'address'   => $dataBody->address,
+                    'state'     => PaymentProductOrder::PREORDER,
+                    'type'      => self::PAYMENT_ADMIN,
+                    'token'     => 'NOT_FOUND',
+                    'file'      => $fileId
+                )
+            );
+
+            foreach( $productList as $key => $product ) {
+                $keyDetail = array_search( $product->id , array_column($dataBody->details , 'product')  );
+                $productDetail = (object) $dataBody->details[$keyDetail];
+                $price = $product->price;
+                $subtotal = $product->price * $productDetail->quantity;
+                $_points = 0;
+                $productPointPack = ProductPointPack::where("product_id" , $product->id )->where("pack_id" , $dataBody->packId)->first();
+                if(  $productPointPack != null ) $_points = $productPointPack->point *  $productDetail->quantity;
+
+
+                if( $discount > 0 ){
+                    $price = $price * (100 - $discount) /100;
+                    $subtotal = $subtotal * (100 - $discount) /100;
+                }
+                array_push(
+                    $productListCreate,
+                    array(
+                        'payment_product_order_id'  => $paymentProductOrder->id,
+                        'product_id'                => $product->id,
+                        'product_title'             => $product->title,
+                        'quantity'                  => $productDetail->quantity,
+                        'price'                     => $price,
+                        'subtotal'                  => $subtotal,
+                        'points'                    => $_points,
+                        'created_at'                => now(),
+                        'updated_at'                => now(),
+                    )
+                );
+            }
+
+            PaymentProductOrderDetail::insert($productListCreate);
+
             DB::commit();
             return $this->sendResponse( array() , 'paymentCash');
         } catch (Exception $e) {
@@ -968,7 +1036,7 @@ class PaymentOrderController extends BaseController
             $paymentLog = PaymentLog::where("state" , PaymentLog::PREORDER)->where('user_id' , $userSponsor->id)->first();
 
             if( $paymentLog == null ) return $this->sendError('No tienes una pre orden activa.');
-            
+
             $paymentOrder = PaymentOrder::where( "id", $paymentLog->payment_order_id)->first();
 
             if( $paymentOrder == null ) return $this->sendError('No tienes una pre orden activa.');

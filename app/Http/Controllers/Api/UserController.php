@@ -1924,6 +1924,46 @@ class UserController extends BaseController
             ]);
 
             if( $dataBody->plan != null ){
+
+                $paymentProductOrder = PaymentProductOrder::create(
+                    array(
+                        'currency'  => PaymentOrder::CURRENCY,
+                        'amount'    => 0,
+                        'discount'  => 0,
+                        'points'    => 0,
+                        'user_id'   => $userId,
+                        'pack_id'   => $dataBody->plan,
+                        'phone'     => $dataBody->phone,
+                        'address'   => $dataBody->address,
+                        'state'     => PaymentProductOrder::PAGADO,
+                        'type'      => self::PAYMENT_ADMIN,
+                        'token'     => 'NOT_FOUND',
+                        'file'      => null
+                    )
+                );
+
+                $productListCreate = array();
+
+                foreach( $dataBody->products as $key => $product )
+                {
+                    array_push(
+                        $productListCreate,
+                        array(
+                            'payment_product_order_id'  => $paymentProductOrder->id,
+                            'product_id'                => $product->id,
+                            'product_title'             => $product->title,
+                            'quantity'                  => $product->quantity,
+                            'price'                     => 0,
+                            'subtotal'                  => 0,
+                            'points'                    => 0,
+                            'created_at'                => now(),
+                            'updated_at'                => now(),
+                        )
+                    );
+                }
+
+                PaymentProductOrderDetail::insert($productListCreate);
+
                 $_paymentOrder = PaymentOrder::create(
                     array(
                         'currency' => PaymentOrder::CURRENCY,

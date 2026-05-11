@@ -124,7 +124,6 @@ class PaymentOrderService{
             }
         }
 
-
     }
 
     public function confirmPointAfiliado( $userCurrent, $points )
