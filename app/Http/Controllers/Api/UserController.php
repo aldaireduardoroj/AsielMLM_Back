@@ -1969,7 +1969,7 @@ class UserController extends BaseController
                     array(
                         'currency' => PaymentOrder::CURRENCY,
                         'amount' => $packCurrent->price,
-                        'sponsor_code' => $sponsorId,
+                        'sponsor_code' => $dataBody->sponsor,
                         'pack_id' => $dataBody->plan,
                         "token" => $orderId
                     )
