@@ -1946,6 +1946,7 @@ class UserController extends BaseController
 
                 foreach( $dataBody->products as $key => $product )
                 {
+                    $product = (object) $product;
                     array_push(
                         $productListCreate,
                         array(
