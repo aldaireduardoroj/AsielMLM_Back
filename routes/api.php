@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\IzipayController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\PaymentProductOrderController;
 use App\Http\Controllers\Api\RangeController;
+use App\Http\Controllers\Api\StorageController;
 
 use App\Http\Controllers\Api\CollectionRequestPatrocinioUserController;
 
@@ -54,6 +55,8 @@ Route::prefix('v1')->group(function () {
         Route::post('auth/update/avatar', [UserController::class, 'authUpdateAvatar']);
         Route::put('auth/update', [UserController::class, 'authUpdate']);
         Route::get('auth/search', [UserController::class, 'search']);
+
+        Route::post('storage/upload', [StorageController::class, 'register']);
 
         Route::post('payment/flow', [PaymentOrderController::class, 'flowCreate']);
         Route::post('payment/flow/create-offline', [PaymentOrderController::class, 'flowCreateOffline']);
@@ -154,7 +157,7 @@ Route::prefix('v1')->group(function () {
     });
 
     Route::post('users/invited-verify', [UserController::class, 'invitedVerify']);
-    
+
 
     Route::get('pack/search', [PackController::class, 'search']);
 
