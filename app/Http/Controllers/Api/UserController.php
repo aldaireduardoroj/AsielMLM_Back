@@ -250,7 +250,7 @@ class UserController extends BaseController
                 $countUserActive = $this->loopUsersActive($user->uuid, $paymentOrderPoint );
                 $countUserAll = $this->loopUsersAll($user->uuid, $paymentOrderPoint );
                 // $countUserActive = 0;
-                
+
 
                 $calculatorPoint = $this->calculator->pointsTotal( $user->uuid , $paymentOrderPoints , $paymentProductOrderPoints );
 
@@ -1590,6 +1590,7 @@ class UserController extends BaseController
             $paymentProductOrderList = PaymentProductOrder::with(['fileImage' => function ($query) {
                 $query->select('id' , 'path');
             }])->select('id', 'user_id', 'state','created_at' , DB::raw('0 as plan') , 'pack_id' ,'phone' ,'points' , 'discount' , DB::raw("'' as payment_order_id") )->whereIn("state", [PaymentProductOrder::PAGADO , PaymentProductOrder::ENVIADO, PaymentProductOrder::PREORDER ]); // ->with(['user','pack','details']);
+
             $userNameCurrentIds = array();
             if( $userCodeCurrent != null ){
 
@@ -2177,6 +2178,7 @@ class UserController extends BaseController
     {
         $paymentLog = PaymentLog::where( "user_id" , $userCurrent->id )
                 ->whereIn("state" , [PaymentLog::TERMINADO, PaymentLog::PAGADO] )->orderBy('created_at', 'desc')->first();
+
         if( $paymentLog != null ){
 
             $paymentLogsCount = PaymentLog::where( "user_id" , $userCurrent->id )
@@ -2212,6 +2214,8 @@ class UserController extends BaseController
                     if( $key > 7 ) continue;
 
                     $level = $rangeResidualPoints->{'level'.($key)};
+
+                    if(  floatval($level) <= 0 ) continue;
 
                     $point = $points * floatval($level) / 100;
 

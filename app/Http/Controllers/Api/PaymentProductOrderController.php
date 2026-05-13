@@ -388,7 +388,7 @@ class PaymentProductOrderController extends BaseController
             $totalPoints = 0;
             $discount = 0;
 
-            
+
 
             $paymentLog = PaymentLog::where( "user_id" , $userId )
                 ->where("confirm" , true)->whereIn("state" , [PaymentLog::PAGADO, PaymentLog::TERMINADO])->first();
@@ -449,7 +449,7 @@ class PaymentProductOrderController extends BaseController
                 'token'     => 'NOT_FOUND',
             )));
 
-            
+
 
             $paymentProductOrder = PaymentProductOrder::create(
                 array(
@@ -641,13 +641,11 @@ class PaymentProductOrderController extends BaseController
 
             $maxPointsProduct = Option::where("option_key" , "max_points_product")->first();
 
-            $this->confirmPointAfiliado( $userCurrent, $paymentProductOrder->points , $personalPoint);
-
             if( $personalPoint >= floatval($maxPointsProduct->option_value) )
             {
                 $paymentLog = PaymentLog::with(['paymentOrder.pack'])
                     ->where( "user_id" ,  $paymentProductOrder->user_id )
-                    
+
                     ->orderBy('created_at', 'desc')
                     ->first();
 
@@ -677,7 +675,7 @@ class PaymentProductOrderController extends BaseController
 
                         $__paymentLog = PaymentLog::with(['paymentOrder.pack'])
                         ->where( "id" ,  $_paymentLog ->id )
-                        
+
                         ->orderBy('created_at', 'desc')
                         ->first();
 
@@ -705,10 +703,12 @@ class PaymentProductOrderController extends BaseController
                             "log_order_id" => $paymentOrder->id
                         ));
                     }
-                    
+
                 }
 
             }
+
+            $this->confirmPointAfiliado( $userCurrent, $paymentProductOrder->points , $personalPoint);
 
             DB::commit();
             return $this->sendResponse( array() , 'Confirm');
@@ -790,7 +790,7 @@ class PaymentProductOrderController extends BaseController
                     if( !$isdiscount ){
                         $totalAmount +=  ($product->price  *  $productDetail->quantity );
                     }
-                    
+
 
                     $productPointPack = ProductPointPack::where("product_id" , $product->id )->where("pack_id" , $paymentLog?->paymentOrder?->pack_id)->first();
                     if(  $productPointPack == null ) $totalPoints += 0;
@@ -1102,11 +1102,9 @@ class PaymentProductOrderController extends BaseController
             if( $personalPoint >= floatval($maxPointsProduct->option_value) )
             {
 
-                $this->confirmPointAfiliado( $userCurrent, $paymentProductOrder->points , $personalPoint);
-
                 $paymentLog = PaymentLog::with(['paymentOrder.pack'])
                     ->where( "user_id" ,  $paymentProductOrder->user_id )
-                    
+
                     ->orderBy('created_at', 'desc')
                     ->first();
 
@@ -1136,7 +1134,7 @@ class PaymentProductOrderController extends BaseController
 
                         $__paymentLog = PaymentLog::with(['paymentOrder.pack'])
                         ->where( "id" ,  $_paymentLog ->id )
-                        
+
                         ->orderBy('created_at', 'desc')
                         ->first();
 
@@ -1156,10 +1154,12 @@ class PaymentProductOrderController extends BaseController
                         //     'user_id' => $userCurrent->id
                         // ));
                     }
-                    
+
                 }
 
             }
+
+            $this->confirmPointAfiliado( $userCurrent, $paymentProductOrder->points , $personalPoint);
 
             DB::commit();
 
@@ -1223,7 +1223,7 @@ class PaymentProductOrderController extends BaseController
                 $_paymentOrderPoints = $this->loopTree( array() , $userCurrent->uuid );
 
                 $afiliadosPoint = RangeUser::where("user_id", $userCurrent->id)->where("status", true)->first();
-                
+
                 $rangeResidualPoints = ResidualPoint::first();
 
                 if( $afiliadosPoint != null ){
@@ -1234,11 +1234,13 @@ class PaymentProductOrderController extends BaseController
 
                 foreach ($_paymentOrderPoints as $key => $_paymentOrderPoint) {
                     $_paymentOrderPoint = (object) $_paymentOrderPoint;
-                    $key++; 
+                    $key++;
                     if( $key > 7 ) continue;
 
                     $level = $rangeResidualPoints->{'level'.($key)};
-                    
+
+                    if(  floatval($level) <= 0 ) continue;
+
                     $point = $points * floatval($level) / 100;
 
                     // antes PaymentOrderPoint::AFILIADOS
@@ -1259,15 +1261,15 @@ class PaymentProductOrderController extends BaseController
                         'points'    => $points,
                         'level' => $key
                     ));
-                    
+
                 }
 
-                
+
             }
-            
+
         }
 
-        
+
     }
 
     private function confirmPoint( $paymentOrder , $userCurrent , $packCurrent, $reactiveAdmin = false)
@@ -1276,7 +1278,7 @@ class PaymentProductOrderController extends BaseController
         $paymentLogsCount = PaymentLog::where( "user_id" , $userCurrent->id )
                 ->whereIn("state" , [PaymentLog::TERMINADO, PaymentLog::PAGADO] )->count();
 
-        
+
 
         // puntos patrocinio
         $sponsorshipPoint = SponsorshipPoint::where("pack_id" , $paymentOrder->pack_id)->first();
@@ -1297,7 +1299,7 @@ class PaymentProductOrderController extends BaseController
                     'user_id' => $userCurrent->id
                 ));
             }
-            
+
             // pago puntos patrocinio
             $level = $sponsorshipPoint->level1;
             $point = floatval($packCurrent->points) * floatval($level) / 100;
@@ -1411,7 +1413,7 @@ class PaymentProductOrderController extends BaseController
                 'user_id' => $userCurrent->id
             ));
         }
-        
+
     }
 
     private function loopTree( array $a_paymentOrderPoint , string $userCode )
