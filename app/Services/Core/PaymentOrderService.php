@@ -16,6 +16,8 @@ use App\Models\Option;
 use App\Models\Product;
 use App\Models\RangeResidualPoints;
 use App\Models\GeneratonialResidualPoints;
+use App\Models\PaymentProductOrder;
+use App\Models\PaymentProductOrderDetail;
 
 class PaymentOrderService{
 
@@ -194,6 +196,73 @@ class PaymentOrderService{
             }
 
         }
+    }
+
+    public function totalProductPatrocinio( $cartList, $userId, $paymentOrder, $preOrder = true, $fileId = null )
+    {
+        $totalAmount = 0;
+
+        $paymentProductOrder = PaymentProductOrder::create(
+            array(
+                'currency'  => PaymentOrder::CURRENCY,
+                'amount'    => 0,
+                'discount'  => 0,
+                'points'    => 0,
+                'user_id'   => $userId,
+                'pack_id'   => $paymentOrder->pack_id,
+                'phone'     => "",
+                'address'   => "",
+                'state'     => $preOrder ?PaymentProductOrder::PAGADO : PaymentProductOrder::PREORDERPAGADO,
+                'type'      => "adminnn",
+                'token'     => 'NOT_FOUND',
+                'file'      => $fileId
+            )
+        );
+
+        $productListCreate = array();
+
+        $productIds = array();
+
+        foreach( $cartList as $key => $product ) {
+            $product = (object) $product;
+            array_push($productIds , $product->product);
+        }
+
+        $productList = Product::with(['discounts'])->whereIn('id' , $productIds)->get();
+
+        foreach( $productList as $key => $product )
+        {
+            $product = (object) $product;
+
+            $keyDetail = array_search( $product->id , array_column($cartList , 'id')  );
+            $productDetail = (object) $cartList[$keyDetail];
+
+            array_push(
+                $productListCreate,
+                array(
+                    'payment_product_order_id'  => $paymentProductOrder->id,
+                    'product_id'                => $product->id,
+                    'product_title'             => $product->title,
+                    'quantity'                  => $product->quantity,
+                    'price'                     => 0,
+                    'subtotal'                  => 0,
+                    'points'                    => 0,
+                    'created_at'                => now(),
+                    'updated_at'                => now(),
+                )
+            );
+
+            $totalAmount +=  ($product->price  *  $productDetail->quantity );
+        }
+
+        PaymentProductOrderDetail::insert($productListCreate);
+
+        PaymentOrder::where("id", $paymentOrder->id)->update(
+            array(
+                'amount' => $totalAmount
+            )
+        );
+
     }
 
     private function loopTree( array $a_paymentOrderPoint , string $userCode )

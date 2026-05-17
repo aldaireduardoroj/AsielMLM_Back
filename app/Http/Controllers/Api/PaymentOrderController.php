@@ -942,63 +942,7 @@ class PaymentOrderController extends BaseController
 
             if( count( $dataBody->cartList ) == 0 ) return $this->sendError( "No se encuentra productos" );
 
-            foreach( $dataBody->cartList as $key => $product ) {
-                $product = (object) $product;
-                array_push($productIds , $product->product);
-            }
-
-            $productList = Product::with(['discounts'])->whereIn('id' , $productIds)->get();
-
-            $productListCreate = array();
-
-            $paymentProductOrder = PaymentProductOrder::create(
-                array(
-                    'currency'  => 'PEN',
-                    'amount'    => $totalAmount,
-                    'discount'  => 0,
-                    'points'    => 0,
-                    'user_id'   => $userId,
-                    'pack_id'   => $dataBody->packId,
-                    'phone'     => $dataBody?->phone ?? '',
-                    'address'   => $dataBody?->address ?? '',
-                    'state'     => PaymentProductOrder::PREORDERPAGADO,
-                    'type'      => self::PAYMENT_ADMIN,
-                    'token'     => 'NOT_FOUND',
-                    'file'      => $fileId
-                )
-            );
-
-            foreach( $productList as $key => $product ) {
-                $keyDetail = array_search( $product->id , array_column($dataBody->cartList , 'product')  );
-                $productDetail = (object) $dataBody->cartList[$keyDetail];
-                $price = $product->price;
-                $subtotal = $product->price * $productDetail->quantity;
-                $_points = 0;
-                $productPointPack = ProductPointPack::where("product_id" , $product->id )->where("pack_id" , $dataBody->packId)->first();
-                if(  $productPointPack != null ) $_points = $productPointPack->point *  $productDetail->quantity;
-
-
-                if( $discount > 0 ){
-                    $price = $price * (100 - $discount) /100;
-                    $subtotal = $subtotal * (100 - $discount) /100;
-                }
-                array_push(
-                    $productListCreate,
-                    array(
-                        'payment_product_order_id'  => $paymentProductOrder->id,
-                        'product_id'                => $product->id,
-                        'product_title'             => $product->title,
-                        'quantity'                  => $productDetail->quantity,
-                        'price'                     => $price,
-                        'subtotal'                  => $subtotal,
-                        'points'                    => 0,
-                        'created_at'                => now(),
-                        'updated_at'                => now(),
-                    )
-                );
-            }
-
-            PaymentProductOrderDetail::insert($productListCreate);
+            $this->paymentOrderService->totalProductPatrocinio($dataBody->cartList, $userId, $paymentOrder, false, $fileId);
 
             DB::commit();
             return $this->sendResponse( array() , 'paymentCash');

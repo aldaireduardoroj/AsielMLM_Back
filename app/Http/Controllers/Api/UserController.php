@@ -142,6 +142,7 @@ class UserController extends BaseController
             $user_id = Auth::id();
             User::where("id" , $user_id)->update(array(
                 "address"   => $dataBody->address,
+                "name"      => $dataBody->name,
                 "phone"     => $dataBody->phone,
                 'city'      => $dataBody->city,
                 'country'   => $dataBody->country,
@@ -418,7 +419,9 @@ class UserController extends BaseController
                             )
                         );
 
-                        $this->confirmPoint($_paymentOrder , $userUpdated , $packCurrent);
+                        $this->paymentOrderService->totalProductPatrocinio($dataBody->cartList, $userUpdated->id, $_paymentOrder);
+
+                        $this->paymentOrderService->confirmPoint($_paymentOrder , $userUpdated , $packCurrent);
 
                         $_paymentLog = PaymentLog::create(
                             array(
@@ -431,6 +434,8 @@ class UserController extends BaseController
 
                     }else{
 
+
+
                         $paymentOrder = PaymentOrder::create(
                             array(
                                 'currency' => "PEN",
@@ -441,7 +446,7 @@ class UserController extends BaseController
                             )
                         );
 
-                        $this->confirmPoint($paymentOrder , $userUpdated , $packCurrent);
+                        $this->paymentOrderService->confirmPoint($paymentOrder , $userUpdated , $packCurrent);
 
                         $paymentLog = PaymentLog::create(
                             array(
@@ -1925,46 +1930,6 @@ class UserController extends BaseController
 
             if( $dataBody->plan != null ){
 
-                $paymentProductOrder = PaymentProductOrder::create(
-                    array(
-                        'currency'  => PaymentOrder::CURRENCY,
-                        'amount'    => 0,
-                        'discount'  => 0,
-                        'points'    => 0,
-                        'user_id'   => $userId,
-                        'pack_id'   => $dataBody->plan,
-                        'phone'     => "",
-                        'address'   => "",
-                        'state'     => PaymentProductOrder::PAGADO,
-                        'type'      => self::PAYMENT_ADMIN,
-                        'token'     => 'NOT_FOUND',
-                        'file'      => null
-                    )
-                );
-
-                $productListCreate = array();
-
-                foreach( $dataBody->products as $key => $product )
-                {
-                    $product = (object) $product;
-                    array_push(
-                        $productListCreate,
-                        array(
-                            'payment_product_order_id'  => $paymentProductOrder->id,
-                            'product_id'                => $product->id,
-                            'product_title'             => $product->title,
-                            'quantity'                  => $product->quantity,
-                            'price'                     => 0,
-                            'subtotal'                  => 0,
-                            'points'                    => 0,
-                            'created_at'                => now(),
-                            'updated_at'                => now(),
-                        )
-                    );
-                }
-
-                PaymentProductOrderDetail::insert($productListCreate);
-
                 $_paymentOrder = PaymentOrder::create(
                     array(
                         'currency' => PaymentOrder::CURRENCY,
@@ -1974,6 +1939,8 @@ class UserController extends BaseController
                         "token" => $orderId
                     )
                 );
+
+                $this->paymentOrderService->totalProductPatrocinio($dataBody->details, $userCreated->id, $_paymentOrder);
 
                 $this->paymentOrderService->confirmPoint($_paymentOrder , $userCreated , $packCurrent);
 

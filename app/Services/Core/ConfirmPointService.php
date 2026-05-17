@@ -22,13 +22,14 @@ class ConfirmPointService
             ->whereIn("type", [ PaymentOrderPoint::PATROCINIO ])
             ->where("payment" , true)
             ->count();
-        
+
         return $paymentOrderPointCount >= $maxChild;
     }
 
     public function verifyChildNewSponsor($userCode)
     {
-        
+
+        return $userCode;
         if( !$this->maxChilds($userCode) ) return $userCode;
 
         $paymentOrderPoints = PaymentOrderPoint::select('user_code', 'sponsor_code', 'created_at')
@@ -49,7 +50,7 @@ class ConfirmPointService
                 return $this->verifyChildNewSponsor($paymentOrder->user_code);
             }
         }
-        
+
         return $userCode;
     }
 }
