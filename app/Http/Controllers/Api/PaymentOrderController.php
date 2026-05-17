@@ -28,6 +28,8 @@ use App\Services\Core\Calculator;
 use App\Services\Core\ConfirmPointService;
 use App\Services\Core\FileUpload;
 
+use App\Services\Core\PaymentOrderService;
+
 use Exception;
 class PaymentOrderController extends BaseController
 {
@@ -38,6 +40,7 @@ class PaymentOrderController extends BaseController
     private $confirmPointService;
     private $fileUpload;
     private $fileUploadPath;
+    private $paymentOrderService;
 
     public function __construct()
     {
@@ -46,6 +49,8 @@ class PaymentOrderController extends BaseController
         $this->confirmPointService = new ConfirmPointService();
         $this->fileUpload = new FileUpload();
         $this->fileUploadPath = 'voucher';
+
+        $this->paymentOrderService = new PaymentOrderService();
     }
 
     /**
@@ -931,24 +936,13 @@ class PaymentOrderController extends BaseController
                 )
             );
 
-            // $this->confirmPoint( $paymentOrder , $userCurrent , $packCurrent);
-
-            // PaymentLog::where("payment_order_id" , $paymentOrder->id )->update(
-            //     array(
-            //         "state" => PaymentLog::PAGADO,
-            //         "message" => "PAGADO",
-            //         "confirm" => true,
-            //         "log"   => ""
-            //     )
-            // );
-
             $productIds = array();
 
-            $dataBody->details = json_decode($dataBody->details);
+            $dataBody->cartList = json_decode($dataBody->cartList);
 
-            if( count( $dataBody->details ) == 0 ) return $this->sendError( "No se encuentra productos" );
+            if( count( $dataBody->cartList ) == 0 ) return $this->sendError( "No se encuentra productos" );
 
-            foreach( $dataBody->details as $key => $product ) {
+            foreach( $dataBody->cartList as $key => $product ) {
                 $product = (object) $product;
                 array_push($productIds , $product->product);
             }
@@ -962,12 +956,12 @@ class PaymentOrderController extends BaseController
                     'currency'  => 'PEN',
                     'amount'    => $totalAmount,
                     'discount'  => 0,
-                    'points'    => $totalPoints,
+                    'points'    => 0,
                     'user_id'   => $userId,
                     'pack_id'   => $dataBody->packId,
-                    'phone'     => $dataBody->phone,
-                    'address'   => $dataBody->address,
-                    'state'     => PaymentProductOrder::PREORDER,
+                    'phone'     => $dataBody?->phone ?? '',
+                    'address'   => $dataBody?->address ?? '',
+                    'state'     => PaymentProductOrder::PREORDERPAGADO,
                     'type'      => self::PAYMENT_ADMIN,
                     'token'     => 'NOT_FOUND',
                     'file'      => $fileId
@@ -975,8 +969,8 @@ class PaymentOrderController extends BaseController
             );
 
             foreach( $productList as $key => $product ) {
-                $keyDetail = array_search( $product->id , array_column($dataBody->details , 'product')  );
-                $productDetail = (object) $dataBody->details[$keyDetail];
+                $keyDetail = array_search( $product->id , array_column($dataBody->cartList , 'product')  );
+                $productDetail = (object) $dataBody->cartList[$keyDetail];
                 $price = $product->price;
                 $subtotal = $product->price * $productDetail->quantity;
                 $_points = 0;
@@ -997,7 +991,7 @@ class PaymentOrderController extends BaseController
                         'quantity'                  => $productDetail->quantity,
                         'price'                     => $price,
                         'subtotal'                  => $subtotal,
-                        'points'                    => $_points,
+                        'points'                    => 0,
                         'created_at'                => now(),
                         'updated_at'                => now(),
                     )
@@ -1043,7 +1037,11 @@ class PaymentOrderController extends BaseController
 
             $packCurrent = Pack::find( $paymentOrder->pack_id);
 
-            $this->confirmPoint( $paymentOrder , $userSponsor , $packCurrent);
+            $this->paymentOrderService->confirmPoint( $paymentOrder , $userSponsor , $packCurrent);
+
+            PaymentProductOrder::where("state" , PaymentProductOrder::PREORDERPAGADO)->where('user_id' , $userSponsor->id)->update(array(
+                "state" => PaymentProductOrder::PAGADO
+            ));
 
             PaymentLog::where("payment_order_id" , $paymentOrder->id )->update(
                 array(

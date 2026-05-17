@@ -33,7 +33,7 @@ use App\Services\Core\FileUpload;
 use App\Models\RangeUser;
 use App\Models\RangeResidualPoints;
 use App\Models\GeneratonialResidualPoints;
-
+use App\Services\Core\PaymentOrderService;
 
 class PaymentProductOrderController extends BaseController
 {
@@ -44,12 +44,16 @@ class PaymentProductOrderController extends BaseController
     private $fileUpload;
     private $fileUploadPath;
 
+    private $paymentOrderService;
+
     public function __construct()
     {
         $this->flowPayment = new FlowPayment();
         $this->calculator = new Calculator();
         $this->fileUpload = new FileUpload();
         $this->fileUploadPath = 'voucher-product';
+
+        $this->paymentOrderService = new PaymentOrderService();
     }
 
 
@@ -65,14 +69,8 @@ class PaymentProductOrderController extends BaseController
             $user_id = Auth::id();
             $userModel = User::with([])->find($user_id);
 
-            // $userDetail = UserDetail::where("user_id" , $user_id)->first();
-
             $paymentProductOrderList = PaymentProductOrder::with(['user','pack','details']);
 
-
-            // if( $request->has('code') ) if( !empty($request->query('code')) ) $userList = $userList->where("uuid" , 'like' , $request->query('code') );
-            // if( $request->has('email') ) if( !empty($request->query('email')) )$userList = $userList->where("email" , 'like' , $request->query('email') );
-            // if( $request->has('name') ) if( !empty($request->query('name')) ) $userList = $userList->where("name" , 'like' , '%'.( $request->query('name') ).'%' );
             if( !$userModel->is_admin ){
                 $paymentProductOrderList = $paymentProductOrderList->where("user_id" , $user_id );
             }
@@ -388,7 +386,7 @@ class PaymentProductOrderController extends BaseController
             $totalPoints = 0;
             $discount = 0;
 
-            
+
 
             $paymentLog = PaymentLog::where( "user_id" , $userId )
                 ->where("confirm" , true)->whereIn("state" , [PaymentLog::PAGADO, PaymentLog::TERMINADO])->first();
@@ -449,7 +447,7 @@ class PaymentProductOrderController extends BaseController
                 'token'     => 'NOT_FOUND',
             )));
 
-            
+
 
             $paymentProductOrder = PaymentProductOrder::create(
                 array(
@@ -641,13 +639,13 @@ class PaymentProductOrderController extends BaseController
 
             $maxPointsProduct = Option::where("option_key" , "max_points_product")->first();
 
-            $this->confirmPointAfiliado( $userCurrent, $paymentProductOrder->points , $personalPoint);
+            $this->paymentOrderService->confirmPointAfiliado( $userCurrent, $paymentProductOrder->points );
 
             if( $personalPoint >= floatval($maxPointsProduct->option_value) )
             {
                 $paymentLog = PaymentLog::with(['paymentOrder.pack'])
                     ->where( "user_id" ,  $paymentProductOrder->user_id )
-                    
+
                     ->orderBy('created_at', 'desc')
                     ->first();
 
@@ -677,7 +675,7 @@ class PaymentProductOrderController extends BaseController
 
                         $__paymentLog = PaymentLog::with(['paymentOrder.pack'])
                         ->where( "id" ,  $_paymentLog ->id )
-                        
+
                         ->orderBy('created_at', 'desc')
                         ->first();
 
@@ -705,7 +703,7 @@ class PaymentProductOrderController extends BaseController
                             "log_order_id" => $paymentOrder->id
                         ));
                     }
-                    
+
                 }
 
             }
@@ -790,7 +788,7 @@ class PaymentProductOrderController extends BaseController
                     if( !$isdiscount ){
                         $totalAmount +=  ($product->price  *  $productDetail->quantity );
                     }
-                    
+
 
                     $productPointPack = ProductPointPack::where("product_id" , $product->id )->where("pack_id" , $paymentLog?->paymentOrder?->pack_id)->first();
                     if(  $productPointPack == null ) $totalPoints += 0;
@@ -1106,7 +1104,7 @@ class PaymentProductOrderController extends BaseController
 
                 $paymentLog = PaymentLog::with(['paymentOrder.pack'])
                     ->where( "user_id" ,  $paymentProductOrder->user_id )
-                    
+
                     ->orderBy('created_at', 'desc')
                     ->first();
 
@@ -1136,7 +1134,7 @@ class PaymentProductOrderController extends BaseController
 
                         $__paymentLog = PaymentLog::with(['paymentOrder.pack'])
                         ->where( "id" ,  $_paymentLog ->id )
-                        
+
                         ->orderBy('created_at', 'desc')
                         ->first();
 
@@ -1156,7 +1154,7 @@ class PaymentProductOrderController extends BaseController
                         //     'user_id' => $userCurrent->id
                         // ));
                     }
-                    
+
                 }
 
             }
@@ -1223,7 +1221,7 @@ class PaymentProductOrderController extends BaseController
                 $_paymentOrderPoints = $this->loopTree( array() , $userCurrent->uuid );
 
                 $afiliadosPoint = RangeUser::where("user_id", $userCurrent->id)->where("status", true)->first();
-                
+
                 $rangeResidualPoints = ResidualPoint::first();
 
                 if( $afiliadosPoint != null ){
@@ -1234,11 +1232,11 @@ class PaymentProductOrderController extends BaseController
 
                 foreach ($_paymentOrderPoints as $key => $_paymentOrderPoint) {
                     $_paymentOrderPoint = (object) $_paymentOrderPoint;
-                    $key++; 
+                    $key++;
                     if( $key > 9 ) continue;
 
                     $level = $rangeResidualPoints->{'level'.($key)};
-                    
+
                     $point = $points * floatval($level) / 100;
 
                     // antes PaymentOrderPoint::AFILIADOS
@@ -1259,15 +1257,15 @@ class PaymentProductOrderController extends BaseController
                         'points'    => $points,
                         'level' => $key
                     ));
-                    
+
                 }
 
-                
+
             }
-            
+
         }
 
-        
+
     }
 
     private function confirmPoint( $paymentOrder , $userCurrent , $packCurrent, $reactiveAdmin = false)
@@ -1276,7 +1274,7 @@ class PaymentProductOrderController extends BaseController
         $paymentLogsCount = PaymentLog::where( "user_id" , $userCurrent->id )
                 ->whereIn("state" , [PaymentLog::TERMINADO, PaymentLog::PAGADO] )->count();
 
-        
+
 
         // puntos patrocinio
         $sponsorshipPoint = SponsorshipPoint::where("pack_id" , $paymentOrder->pack_id)->first();
@@ -1297,7 +1295,7 @@ class PaymentProductOrderController extends BaseController
                     'user_id' => $userCurrent->id
                 ));
             }
-            
+
             // pago puntos patrocinio
             $level = $sponsorshipPoint->level1;
             $point = floatval($packCurrent->points) * floatval($level) / 100;
@@ -1411,7 +1409,7 @@ class PaymentProductOrderController extends BaseController
                 'user_id' => $userCurrent->id
             ));
         }
-        
+
     }
 
     private function loopTree( array $a_paymentOrderPoint , string $userCode )

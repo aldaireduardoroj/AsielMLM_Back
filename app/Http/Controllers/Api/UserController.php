@@ -1214,7 +1214,7 @@ class UserController extends BaseController
 
             }
 
-            $this->confirmPointAfiliado( $userUpdated , $totalPoints);
+            $this->paymentOrderService->confirmPointAfiliado( $userUpdated , $totalPoints);
 
             DB::commit();
             return $this->sendResponse( 1 , '');
@@ -2234,7 +2234,7 @@ class UserController extends BaseController
             $paymentLogsCount = PaymentLog::where( "user_id" , $userCurrent->id )
                 ->whereIn("state" , [PaymentLog::TERMINADO, PaymentLog::PAGADO] )->count();
 
-            if( $paymentLogsCount > 1 ){
+            if( $paymentLogsCount > 0 ){
                 $_paymentOrderPoints = $this->loopTree( array() , $userCurrent->uuid );
 
                 $afiliadosPoint = RangeUser::where("user_id", $userCurrent->id)->where("status", true)->first();

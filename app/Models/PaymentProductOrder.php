@@ -16,6 +16,7 @@ class PaymentProductOrder extends Model
     const TERMINADO = 6;
 
     const PREORDER = 9;
+    const PREORDERPAGADO = 10;
 
     use HasFactory, Uuid;
 

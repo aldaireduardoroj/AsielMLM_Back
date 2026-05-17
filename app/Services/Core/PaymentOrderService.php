@@ -135,7 +135,7 @@ class PaymentOrderService{
             $paymentLogsCount = PaymentLog::where( "user_id" , $userCurrent->id )
                 ->whereIn("state" , [PaymentLog::TERMINADO, PaymentLog::PAGADO] )->count();
 
-            if( $paymentLogsCount > 1 ){
+            if( $paymentLogsCount > 0 ){
                 $_paymentOrderPoints = $this->loopTree( array() , $userCurrent->uuid );
 
                 $afiliadosPoint = RangeUser::where("user_id", $userCurrent->id)->where("status", true)->first();
@@ -165,6 +165,8 @@ class PaymentOrderService{
                     if( $key > 9 ) continue;
 
                     $level = $rangeResidualPoints->{'level'.($key)};
+
+                    if( $level == 0 ) continue;
 
                     $point = $points * floatval($level) / 100;
 
