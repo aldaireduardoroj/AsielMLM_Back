@@ -243,7 +243,7 @@ class PaymentOrderService{
                     'payment_product_order_id'  => $paymentProductOrder->id,
                     'product_id'                => $product->id,
                     'product_title'             => $product->title,
-                    'quantity'                  => $product->quantity,
+                    'quantity'                  => $productDetail->quantity,
                     'price'                     => 0,
                     'subtotal'                  => 0,
                     'points'                    => 0,
