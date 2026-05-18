@@ -213,7 +213,7 @@ class PaymentOrderService{
                 'phone'     => "",
                 'address'   => "",
                 'state'     => $preOrder ?PaymentProductOrder::PAGADO : PaymentProductOrder::PREORDERPAGADO,
-                'type'      => "adminnn",
+                'type'      => 1,
                 'token'     => 'NOT_FOUND',
                 'file'      => $fileId
             )
