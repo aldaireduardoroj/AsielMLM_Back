@@ -225,7 +225,7 @@ class PaymentOrderService{
 
         foreach( $cartList as $key => $product ) {
             $product = (object) $product;
-            array_push($productIds , $product->product);
+            array_push($productIds , $product->id);
         }
 
         $productList = Product::with(['discounts'])->whereIn('id' , $productIds)->get();
