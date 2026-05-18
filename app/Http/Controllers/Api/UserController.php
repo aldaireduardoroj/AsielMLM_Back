@@ -1940,7 +1940,7 @@ class UserController extends BaseController
                     )
                 );
 
-                $this->paymentOrderService->totalProductPatrocinio($dataBody->cartList, $userCreated->id, $_paymentOrder);
+                $this->paymentOrderService->totalProductPatrocinio($dataBody->products, $userCreated->id, $_paymentOrder);
 
                 $this->paymentOrderService->confirmPoint($_paymentOrder , $userCreated , $packCurrent);
 
