@@ -60,12 +60,12 @@ class PaymentOrderService{
             $point = floatval($packCurrent->points) * floatval($level) / 100;
 
             
-            if($paymentOrder->pack_id == ($optPackInitFast ?? "")){
+            if($paymentOrder->pack_id == ($optPackInitFast?->option_value ?? "")){
                 PaymentOrderPoint::create(array(
                     'payment_order_id' => $paymentOrder->id,
                     'user_code' => $userCurrent->uuid,
                     'sponsor_code' => $paymentOrder->sponsor_code,
-                    'point' => $optPointInitFast ?? 50 ,
+                    'point' => $optPointInitFast?->option_value ?? 50 ,
                     'payment' => true,
                     'type' => PaymentOrderPoint::INIT_FAST,
                     'user_id' => $userCurrent->id
@@ -106,7 +106,7 @@ class PaymentOrderService{
         $sponsorshipPoint = SponsorshipPoint::where("pack_id" , $paymentOrder->pack_id)->first();
 
         if( $paymentLogsCount == 0 ){
-            if($paymentOrder->pack_id != ($optPackInitFast ?? "")){
+            if($paymentOrder->pack_id != ($optPackInitFast?->option_value ?? "")){
                 foreach ($_paymentOrderPoints as $key => $_paymentOrderPoint) {
                     $_paymentOrderPoint = (object) $_paymentOrderPoint;
                     if( $key == 0 ) continue;
@@ -205,7 +205,7 @@ class PaymentOrderService{
 
                     if( $paymentLogGive != null ){
                         $paymentOrderGive = PaymentOrder::where("id", $paymentLogGive->payment_order_id)->first();
-                        if($paymentOrderGive->pack_id == ($optPackInitFast ?? "")) continue;
+                        if($paymentOrderGive->pack_id == ($optPackInitFast?->option_value ?? "")) continue;
                     }
 
                     // antes PaymentOrderPoint::AFILIADOS
