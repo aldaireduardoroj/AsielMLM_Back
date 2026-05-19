@@ -679,7 +679,7 @@ class PaymentProductOrderController extends BaseController
                         ->orderBy('created_at', 'desc')
                         ->first();
 
-                        $this->confirmPoint($paymentOrder , $userCurrent , $__paymentLog->paymentOrder->pack, true);
+                        $this->paymentOrderService->confirmPoint($paymentOrder , $userCurrent , $__paymentLog->paymentOrder->pack, true);
 
                         $option = Option::where("option_key", 'reactive_point')->first();
 
@@ -1097,10 +1097,10 @@ class PaymentProductOrderController extends BaseController
 
             $userCurrent = User::find( $paymentProductOrder->user_id );
 
+            $this->paymentOrderService->confirmPointAfiliado( $userCurrent, $paymentProductOrder->points , $personalPoint);
+
             if( $personalPoint >= floatval($maxPointsProduct->option_value) )
             {
-
-                $this->confirmPointAfiliado( $userCurrent, $paymentProductOrder->points , $personalPoint);
 
                 $paymentLog = PaymentLog::with(['paymentOrder.pack'])
                     ->where( "user_id" ,  $paymentProductOrder->user_id )
@@ -1138,21 +1138,9 @@ class PaymentProductOrderController extends BaseController
                         ->orderBy('created_at', 'desc')
                         ->first();
 
-                        $this->confirmPoint($paymentOrder , $userCurrent , $__paymentLog->paymentOrder->pack, true);
+                        $this->paymentOrderService->confirmPoint($paymentOrder , $userCurrent , $__paymentLog->paymentOrder->pack, true);
 
                         $option = Option::where("option_key", 'reactive_point')->first();
-
-                        // desabilitado - 15-06
-
-                        // PaymentOrderPoint::create(array(
-                        //     'payment_order_id' => $paymentOrder->id,
-                        //     'user_code' => $userCurrent->uuid,
-                        //     'sponsor_code' => $paymentOrder->sponsor_code,
-                        //     'point' => floatval($option->option_value ?? "200"),
-                        //     'payment' => true,
-                        //     'type' => PaymentOrderPoint::COMPRA,
-                        //     'user_id' => $userCurrent->id
-                        // ));
                     }
 
                 }
@@ -1206,210 +1194,6 @@ class PaymentProductOrderController extends BaseController
         $calculateHash = hash_hmac("sha256", $krAnswer, $key);
 
         return ($calculateHash == $hash);
-    }
-
-    private function confirmPointAfiliado( $userCurrent, $points , $totalPoints)
-    {
-        $paymentLog = PaymentLog::where( "user_id" , $userCurrent->id )
-                ->whereIn("state" , [PaymentLog::TERMINADO, PaymentLog::PAGADO] )->orderBy('created_at', 'desc')->first();
-        if( $paymentLog != null ){
-
-            $paymentLogsCount = PaymentLog::where( "user_id" , $userCurrent->id )
-                ->whereIn("state" , [PaymentLog::TERMINADO, PaymentLog::PAGADO] )->count();
-
-            if( $paymentLogsCount > 1 ){
-                $_paymentOrderPoints = $this->loopTree( array() , $userCurrent->uuid );
-
-                $afiliadosPoint = RangeUser::where("user_id", $userCurrent->id)->where("status", true)->first();
-
-                $rangeResidualPoints = ResidualPoint::first();
-
-                if( $afiliadosPoint != null ){
-                    $rangeResidualPoints = RangeResidualPoints::where("range_id", $afiliadosPoint->range_id)->first();
-                }else{
-                    $rangeResidualPoints = RangeResidualPoints::where("range_id", 1)->first();
-                }
-
-                foreach ($_paymentOrderPoints as $key => $_paymentOrderPoint) {
-                    $_paymentOrderPoint = (object) $_paymentOrderPoint;
-                    $key++;
-                    if( $key > 9 ) continue;
-
-                    $level = $rangeResidualPoints->{'level'.($key)};
-
-                    $point = $points * floatval($level) / 100;
-
-                    // antes PaymentOrderPoint::AFILIADOS
-                    $__paymentOrderPoint = PaymentOrderPoint::create(array(
-                        'payment_order_id' => $paymentLog->payment_order_id,
-                        'user_code' => $_paymentOrderPoint->user_code,
-                        'sponsor_code' => $_paymentOrderPoint->sponsor_code,
-                        'point' => $point,
-                        'payment' => false,
-                        'type' => PaymentOrderPoint::RESIDUAL,
-                        'user_id' => $userCurrent->id
-                    ));
-
-                    GeneratonialResidualPoints::create(array(
-                        'user_id' => $userCurrent->id,
-                        'range_id' => $afiliadosPoint?->range_id ?? 0,
-                        'point_id' => $__paymentOrderPoint->id,
-                        'points'    => $points,
-                        'level' => $key
-                    ));
-
-                }
-
-
-            }
-
-        }
-
-
-    }
-
-    private function confirmPoint( $paymentOrder , $userCurrent , $packCurrent, $reactiveAdmin = false)
-    {
-
-        $paymentLogsCount = PaymentLog::where( "user_id" , $userCurrent->id )
-                ->whereIn("state" , [PaymentLog::TERMINADO, PaymentLog::PAGADO] )->count();
-
-
-
-        // puntos patrocinio
-        $sponsorshipPoint = SponsorshipPoint::where("pack_id" , $paymentOrder->pack_id)->first();
-        // puntos residuales
-        $residualPoint = ResidualPoint::first();
-
-        if( $paymentLogsCount == 0 ){
-
-            // punto de compra
-            if( !$reactiveAdmin ){
-                PaymentOrderPoint::create(array(
-                    'payment_order_id' => $paymentOrder->id,
-                    'user_code' => $userCurrent->uuid,
-                    'sponsor_code' => $paymentOrder->sponsor_code,
-                    'point' => $packCurrent->points,
-                    'payment' => true,
-                    'type' => PaymentOrderPoint::COMPRA,
-                    'user_id' => $userCurrent->id
-                ));
-            }
-
-            // pago puntos patrocinio
-            $level = $sponsorshipPoint->level1;
-            $point = floatval($packCurrent->points) * floatval($level) / 100;
-
-            PaymentOrderPoint::create(array(
-                'payment_order_id' => $paymentOrder->id,
-                'user_code' => $userCurrent->uuid,
-                'sponsor_code' => $paymentOrder->sponsor_code,
-                'point' => $point,
-                'payment' => true,
-                'type' => PaymentOrderPoint::PATROCINIO,
-                'user_id' => $userCurrent->id
-            ));
-
-        }else if( $paymentLogsCount > 0 ){
-
-            $option = Option::where("option_key", 'reactive_point')->first();
-            // punto de compra
-            if( !$reactiveAdmin ){
-                PaymentOrderPoint::create(array(
-                    'payment_order_id' => $paymentOrder->id,
-                    'user_code' => $userCurrent->uuid,
-                    'sponsor_code' => $paymentOrder->sponsor_code,
-                    'point' => floatval($option->option_value ?? "200"),
-                    'payment' => true,
-                    'type' => PaymentOrderPoint::COMPRA,
-                    'user_id' => $userCurrent->id
-                ));
-            }
-
-            // pago puntos residual
-            $level = $residualPoint->level1;
-            $option = Option::where("option_key", 'point_residual')->first();
-            // floatval($packCurrent->points)
-            $point = ( floatval($option->option_value) ) * floatval($level) / 100;
-
-            // PaymentOrderPoint::create(array(
-            //     'payment_order_id' => $paymentOrder->id,
-            //     'user_code' => $userCurrent->uuid,
-            //     'sponsor_code' => $paymentOrder->sponsor_code,
-            //     'point' => $point,
-            //     'payment' => false,
-            //     'type' => PaymentOrderPoint::RESIDUAL,
-            //     'user_id' => $userCurrent->id
-            // ));
-        }
-
-        $_paymentOrderPoints = $this->loopTree( array() , $userCurrent->uuid );
-
-        $sponsorshipPoint = SponsorshipPoint::where("pack_id" , $paymentOrder->pack_id)->first();
-
-        $residualPoint = ResidualPoint::first();
-
-        if( $paymentLogsCount == 0 ){
-            foreach ($_paymentOrderPoints as $key => $_paymentOrderPoint) {
-                $_paymentOrderPoint = (object) $_paymentOrderPoint;
-                if( $key == 0 ) continue;
-                $key++;
-                if( $key > 5 ) break;
-                $level = $sponsorshipPoint->{'level'.($key)};
-                $point = floatval($packCurrent->points) * floatval($level) / 100;
-                PaymentOrderPoint::create(array(
-                    'payment_order_id' => $paymentOrder->id,
-                    'user_code' => $_paymentOrderPoint->user_code,
-                    'sponsor_code' => $_paymentOrderPoint->sponsor_code,
-                    'point' => $point,
-                    'payment' => false,
-                    'type' => PaymentOrderPoint::PATROCINIO,
-                    'user_id' => $userCurrent->id
-                ));
-            }
-        }else
-        if( $paymentLogsCount > 0 ){
-            foreach ($_paymentOrderPoints as $key => $_paymentOrderPoint) {
-                $_paymentOrderPoint = (object) $_paymentOrderPoint;
-                $key++;
-                if( $key > 7 ) break;
-                $level = $residualPoint->{'level'.($key)};
-
-                $option = Option::where("option_key", 'point_residual')->first();
-                $point = floatval($option->option_value) * floatval($level) / 100;
-
-                // PaymentOrderPoint::create(array(
-                //     'payment_order_id' => $paymentOrder->id,
-                //     'user_code' => $_paymentOrderPoint->user_code,
-                //     'sponsor_code' => $_paymentOrderPoint->sponsor_code,
-                //     'point' => $point,
-                //     'payment' => false,
-                //     'type' => PaymentOrderPoint::RESIDUAL,
-                //     'user_id' => $userCurrent->id
-                // ));
-            }
-
-        }
-        foreach ($_paymentOrderPoints as $key => $_paymentOrderPoint) {
-            $_paymentOrderPoint = (object) $_paymentOrderPoint;
-
-            $point = $packCurrent->points;
-            // if( $paymentLogsCount > 0 ){
-            //     $option = Option::where("option_key", 'reactive_point')->first();
-            //     $point = floatval($option->option_value);
-            // }
-
-            PaymentOrderPoint::create(array(
-                'payment_order_id' => $paymentOrder->id,
-                'user_code' => $_paymentOrderPoint->user_code,
-                'sponsor_code' => $_paymentOrderPoint->sponsor_code,
-                'point' => $point,
-                'payment' => false,
-                'type' => PaymentOrderPoint::GRUPAL,
-                'user_id' => $userCurrent->id
-            ));
-        }
-
     }
 
     private function loopTree( array $a_paymentOrderPoint , string $userCode )

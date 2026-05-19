@@ -18,6 +18,7 @@ class Calculator
         $personal = 0;
         $infinito = 0;
         $pointAfiliado = 0;
+        $initFast = 0;
 
         $userModel = User::where("uuid" , $userCode)->first();
         $payment = PaymentLog::with(['paymentOrder.pack'])
@@ -57,6 +58,9 @@ class Calculator
                 if( $paymentOrderPoint->type ==  PaymentOrderPoint::AFILIADOS ){
                     $pointAfiliado = $pointAfiliado + $paymentOrderPoint->point;
                 }
+                if( $paymentOrderPoint->type ==  PaymentOrderPoint::INIT_FAST ){
+                    $initFast = $initFast + $paymentOrderPoint->point;
+                }
             }
             if( strtoupper($userCode) == strtoupper( $paymentOrderPoint->user_code ) ){
                 if( $paymentOrderPoint->type ==  PaymentOrderPoint::COMPRA ){
@@ -81,7 +85,7 @@ class Calculator
         $personalGlobal = 0;
 
         return (object) array(
-            "patrocinio"    => $patrocinio,
+            "patrocinio"    => $patrocinio + $initFast,
             "residual"      => $residual,
             "compra"        => $compra,
             "pointGroup"    => $pointGroup,

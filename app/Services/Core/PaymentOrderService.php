@@ -34,6 +34,10 @@ class PaymentOrderService{
 
         // puntos patrocinio
         $sponsorshipPoint = SponsorshipPoint::where("pack_id" , $paymentOrder->pack_id)->first();
+
+        $optPackInitFast = Option::where("option_key", "bono_init_fast")->first();
+
+        $optPointInitFast = Option::where("option_key", "bono_init_fast_point")->first();
         // puntos residuales
 
         if( $paymentLogsCount == 0 ){
@@ -55,15 +59,29 @@ class PaymentOrderService{
             $level = $sponsorshipPoint->level1;
             $point = floatval($packCurrent->points) * floatval($level) / 100;
 
-            PaymentOrderPoint::create(array(
-                'payment_order_id' => $paymentOrder->id,
-                'user_code' => $userCurrent->uuid,
-                'sponsor_code' => $paymentOrder->sponsor_code,
-                'point' => $point,
-                'payment' => true,
-                'type' => PaymentOrderPoint::PATROCINIO,
-                'user_id' => $userCurrent->id
-            ));
+            
+            if($paymentOrder->pack_id == ($optPackInitFast ?? "")){
+                PaymentOrderPoint::create(array(
+                    'payment_order_id' => $paymentOrder->id,
+                    'user_code' => $userCurrent->uuid,
+                    'sponsor_code' => $paymentOrder->sponsor_code,
+                    'point' => $optPointInitFast ?? 50 ,
+                    'payment' => true,
+                    'type' => PaymentOrderPoint::INIT_FAST,
+                    'user_id' => $userCurrent->id
+                ));
+            }else{
+                PaymentOrderPoint::create(array(
+                    'payment_order_id' => $paymentOrder->id,
+                    'user_code' => $userCurrent->uuid,
+                    'sponsor_code' => $paymentOrder->sponsor_code,
+                    'point' => $point,
+                    'payment' => true,
+                    'type' => PaymentOrderPoint::PATROCINIO,
+                    'user_id' => $userCurrent->id
+                ));
+            }
+            
 
         }else if( $paymentLogsCount > 0 ){
 
@@ -88,23 +106,26 @@ class PaymentOrderService{
         $sponsorshipPoint = SponsorshipPoint::where("pack_id" , $paymentOrder->pack_id)->first();
 
         if( $paymentLogsCount == 0 ){
-            foreach ($_paymentOrderPoints as $key => $_paymentOrderPoint) {
-                $_paymentOrderPoint = (object) $_paymentOrderPoint;
-                if( $key == 0 ) continue;
-                $key++;
-                if( $key > 5 ) break;
-                $level = $sponsorshipPoint->{'level'.($key)};
-                $point = floatval($packCurrent->points) * floatval($level) / 100;
-                PaymentOrderPoint::create(array(
-                    'payment_order_id' => $paymentOrder->id,
-                    'user_code' => $_paymentOrderPoint->user_code,
-                    'sponsor_code' => $_paymentOrderPoint->sponsor_code,
-                    'point' => $point,
-                    'payment' => false,
-                    'type' => PaymentOrderPoint::PATROCINIO,
-                    'user_id' => $userCurrent->id
-                ));
+            if($paymentOrder->pack_id != ($optPackInitFast ?? "")){
+                foreach ($_paymentOrderPoints as $key => $_paymentOrderPoint) {
+                    $_paymentOrderPoint = (object) $_paymentOrderPoint;
+                    if( $key == 0 ) continue;
+                    $key++;
+                    if( $key > 5 ) break;
+                    $level = $sponsorshipPoint->{'level'.($key)};
+                    $point = floatval($packCurrent->points) * floatval($level) / 100;
+                    PaymentOrderPoint::create(array(
+                        'payment_order_id' => $paymentOrder->id,
+                        'user_code' => $_paymentOrderPoint->user_code,
+                        'sponsor_code' => $_paymentOrderPoint->sponsor_code,
+                        'point' => $point,
+                        'payment' => false,
+                        'type' => PaymentOrderPoint::PATROCINIO,
+                        'user_id' => $userCurrent->id
+                    ));
+                }
             }
+            
         }else
 
 
@@ -132,6 +153,9 @@ class PaymentOrderService{
     {
         $paymentLog = PaymentLog::where( "user_id" , $userCurrent->id )
                 ->whereIn("state" , [PaymentLog::TERMINADO, PaymentLog::PAGADO] )->orderBy('created_at', 'desc')->first();
+
+        $optPackInitFast = Option::where("option_key", "bono_init_fast")->first();
+
         if( $paymentLog != null ){
 
             $paymentLogsCount = PaymentLog::where( "user_id" , $userCurrent->id )
@@ -150,7 +174,9 @@ class PaymentOrderService{
                     $rangeResidualPoints = RangeResidualPoints::where("range_id", 1)->first();
                 }
 
+                
                 foreach ($_paymentOrderPoints as $key => $_paymentOrderPoint) {
+
                     $_paymentOrderPoint = (object) $_paymentOrderPoint;
                     $key++;
 
@@ -171,6 +197,16 @@ class PaymentOrderService{
                     if( $level == 0 ) continue;
 
                     $point = $points * floatval($level) / 100;
+
+                    $userGivePoint = User::where("uuid", $_paymentOrderPoint->sponsor_code)->first();
+
+                    $paymentLogGive = PaymentLog::where( "user_id" , $userGivePoint->id )
+                        ->whereIn("state" , [PaymentLog::TERMINADO, PaymentLog::PAGADO] )->orderBy('created_at', 'desc')->first();
+
+                    if( $paymentLogGive != null ){
+                        $paymentOrderGive = PaymentOrder::where("id", $paymentLogGive->payment_order_id)->first();
+                        if($paymentOrderGive->pack_id == ($optPackInitFast ?? "")) continue;
+                    }
 
                     // antes PaymentOrderPoint::AFILIADOS
                     $__paymentOrderPoint = PaymentOrderPoint::create(array(

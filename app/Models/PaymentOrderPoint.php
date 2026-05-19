@@ -18,6 +18,7 @@ class PaymentOrderPoint extends Model
     const INFINITO = "I";
 
     const AFILIADOS = "A";
+    const INIT_FAST = "F";
 
     protected $fillable = [
         'payment_order_id',
