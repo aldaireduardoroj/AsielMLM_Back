@@ -126,6 +126,7 @@ class PaymentOrderService{
                 }
             }
             
+            
         }else
 
 
@@ -306,8 +307,8 @@ class PaymentOrderService{
         $paymentOrderPoint = PaymentOrderPoint::select('user_code', 'sponsor_code')
             ->distinct()
             ->where("user_code" , 'like', $userCode)
-            ->whereIn("type", [ PaymentOrderPoint::PATROCINIO ])
-            ->where("payment" , 1)
+            ->whereIn("type", [ PaymentOrderPoint::COMPRA ])
+            ->where("payment" , true)
             ->first();
 
         if( $paymentOrderPoint != null ){
