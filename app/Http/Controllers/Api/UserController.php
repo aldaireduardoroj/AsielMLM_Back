@@ -1226,7 +1226,7 @@ class UserController extends BaseController
 
         }catch (Exception $e){
             DB::rollBack();
-            return $this->sendError( $e->getMessage() , "dsdsdsdsd" , 402 );
+            return $this->sendError( $e->getMessage() , $e , 402 );
         }
     }
 

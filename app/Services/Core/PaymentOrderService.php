@@ -18,6 +18,7 @@ use App\Models\RangeResidualPoints;
 use App\Models\GeneratonialResidualPoints;
 use App\Models\PaymentProductOrder;
 use App\Models\PaymentProductOrderDetail;
+use App\Models\User;
 
 class PaymentOrderService{
 
