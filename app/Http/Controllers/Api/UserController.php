@@ -1590,12 +1590,16 @@ class UserController extends BaseController
             if( $request->has('limit') ) $limit = intval( $request->query('limit') );
 
             $user_id = Auth::id();
+            $userModel = User::with([])->find($user_id);
 
             $userCode = "";
             $userCodeCurrent = null;
             if( $request->has('codeuser') ) if( !empty($request->query('codeuser')) ){
-                $userCodeCurrent = User::where("uuid" , $request->query('codeuser'))->first();
-                $userCode = $request->query('codeuser');
+                if( !$userModel->is_admin ){
+                    $userCodeCurrent = User::where("uuid" , $request->query('codeuser'))->first();
+                    $userCode = $request->query('codeuser');
+                }
+                
             }
 
             $paymentProductOrderList = PaymentProductOrder::with(['fileImage' => function ($query) {
