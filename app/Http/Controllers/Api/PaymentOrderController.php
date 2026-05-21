@@ -938,11 +938,11 @@ class PaymentOrderController extends BaseController
 
             $productIds = array();
 
-            $dataBody->cartList = json_decode($dataBody->cartList);
+            $dataBody->products = json_decode($dataBody->products);
 
-            if( count( $dataBody->cartList ) == 0 ) return $this->sendError( "No se encuentra productos" );
+            if( count( $dataBody->products ) == 0 ) return $this->sendError( "No se encuentra productos" );
 
-            $this->paymentOrderService->totalProductPatrocinio($dataBody->cartList, $userId, $paymentOrder, false, $fileId);
+            $this->paymentOrderService->totalProductPatrocinio($dataBody->products, $userId, $paymentOrder, false, $fileId);
 
             DB::commit();
             return $this->sendResponse( array() , 'paymentCash');
