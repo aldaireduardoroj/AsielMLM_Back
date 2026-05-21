@@ -54,11 +54,6 @@ class PaymentLog extends Model
         return $this->hasOne(PaymentOrder::class , 'id' , 'payment_order_id');
     }
 
-    public function file()
-    {
-        return $this->hasOne(File::class , 'id' , 'file_id');
-    }
-
     public function fileImage()
     {
         return $this->hasOne(File::class , 'id' , 'file_id');
