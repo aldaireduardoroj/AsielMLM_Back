@@ -242,7 +242,7 @@ class UserController extends BaseController
                 ->distinct()->orderBy('created_at', 'desc')->get()->all();
 
             foreach ($userList as $key => $user) {
-                $userList[$key]->payment = PaymentLog::with(['paymentOrder.pack' , 'paymentOrder.sponsor.file'])->where( "user_id" ,  $user->id )
+                $userList[$key]->payment = PaymentLog::with(['paymentOrder.pack' , 'paymentOrder.sponsor.file', 'fileImage'])->where( "user_id" ,  $user->id )
                     ->where( function ($query) {
                         $query->where('state' , PaymentLog::PAGADO)
                         ->orWhere('state' , PaymentLog::PREORDER)
