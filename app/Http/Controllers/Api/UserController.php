@@ -1602,9 +1602,7 @@ class UserController extends BaseController
                 
             }
 
-            $paymentProductOrderList = PaymentProductOrder::with(['fileImage' => function ($query) {
-                $query->select('id' , 'path');
-            }])->select('id', 'user_id', 'state' , DB::raw("0 as file_id") , 'file' ,'created_at' , DB::raw('0 as plan') , 'pack_id' ,'phone' ,'points' , 'discount' , DB::raw("'' as payment_order_id") )->whereIn("state", [PaymentProductOrder::PAGADO , PaymentProductOrder::ENVIADO, PaymentProductOrder::PREORDER, PaymentProductOrder::PREORDERPAGADO ]); // ->with(['user','pack','details']);
+            $paymentProductOrderList = PaymentProductOrder::select('id', 'user_id', 'state' , DB::raw("file as file_id") ,'created_at' , DB::raw('0 as plan') , 'pack_id' ,'phone' ,'points' , 'discount' , DB::raw("'' as payment_order_id") )->whereIn("state", [PaymentProductOrder::PAGADO , PaymentProductOrder::ENVIADO, PaymentProductOrder::PREORDER, PaymentProductOrder::PREORDERPAGADO ]); // ->with(['user','pack','details']);
             $userNameCurrentIds = array();
             if( $userCodeCurrent != null ){
 
@@ -1616,9 +1614,7 @@ class UserController extends BaseController
                 $paymentProductOrderList = $paymentProductOrderList->whereIn("user_id" , $userNameCurrentIds);
             }
 
-            $paymentOrders = PaymentLog::with(['fileImage' => function ($query) {
-                $query->select('id' , 'path');
-            }])->select('id', 'user_id', 'state', 'file_id', DB::raw("0 as file") , 'created_at' , DB::raw('1 as plan') , DB::raw("'' as pack_id") ,
+            $paymentOrders = PaymentLog::select('id', 'user_id', 'state', 'file_id' , 'created_at' , DB::raw('1 as plan') , DB::raw("'' as pack_id") ,
             DB::raw("'' as phone") , DB::raw("'' as points") , DB::raw("'' as discount") , 'payment_order_id' )->whereIn("state", [PaymentLog::PAGADO, PaymentLog::TERMINADO , PaymentLog::PREORDER]);
 
             if( $userCodeCurrent != null ){
@@ -1643,6 +1639,8 @@ class UserController extends BaseController
                 }else{
                     $paymentUnion[$key]->pack = Pack::find($payment->pack_id);
                 }
+
+                $paymentUnion[$key]->file_image = File::find($payment->file_id);
             }
 
             // $userList = $userList
