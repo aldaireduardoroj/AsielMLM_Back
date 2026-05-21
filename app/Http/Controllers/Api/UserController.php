@@ -1604,7 +1604,7 @@ class UserController extends BaseController
 
             $paymentProductOrderList = PaymentProductOrder::with(['fileImage' => function ($query) {
                 $query->select('id' , 'path');
-            }])->select('id', 'user_id', 'state','created_at' , DB::raw('0 as plan') , 'pack_id' ,'phone' ,'points' , 'discount' , DB::raw("'' as payment_order_id") )->whereIn("state", [PaymentProductOrder::PAGADO , PaymentProductOrder::ENVIADO, PaymentProductOrder::PREORDER ]); // ->with(['user','pack','details']);
+            }])->select('id', 'user_id', 'state' , 'file_id' ,'created_at' , DB::raw('0 as plan') , 'pack_id' ,'phone' ,'points' , 'discount' , DB::raw("'' as payment_order_id") )->whereIn("state", [PaymentProductOrder::PAGADO , PaymentProductOrder::ENVIADO, PaymentProductOrder::PREORDER, PaymentProductOrder::PREORDERPAGADO ]); // ->with(['user','pack','details']);
             $userNameCurrentIds = array();
             if( $userCodeCurrent != null ){
 
@@ -1618,8 +1618,8 @@ class UserController extends BaseController
 
             $paymentOrders = PaymentLog::with(['fileImage' => function ($query) {
                 $query->select('id' , 'path');
-            }])->select('id', 'user_id', 'state' , 'created_at' , DB::raw('1 as plan') , DB::raw("'' as pack_id") ,
-            DB::raw("'' as phone") , DB::raw("'' as points") , DB::raw("'' as discount") , 'payment_order_id' )->whereIn("state", [PaymentLog::PAGADO, PaymentLog::TERMINADO , PaymentProductOrder::PREORDER]);
+            }])->select('id', 'user_id', 'state', 'file_id' , 'created_at' , DB::raw('1 as plan') , DB::raw("'' as pack_id") ,
+            DB::raw("'' as phone") , DB::raw("'' as points") , DB::raw("'' as discount") , 'payment_order_id' )->whereIn("state", [PaymentLog::PAGADO, PaymentLog::TERMINADO , PaymentLog::PREORDER]);
 
             if( $userCodeCurrent != null ){
                 $paymentOrders = $paymentOrders->where("user_id" , $userCodeCurrent->id);
