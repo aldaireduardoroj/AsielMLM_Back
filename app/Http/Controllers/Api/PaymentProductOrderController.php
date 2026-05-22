@@ -921,7 +921,7 @@ class PaymentProductOrderController extends BaseController
         $validator = Validator::make( $request->all() , [
             'phone'                 => 'required',
             'address'                 => 'required',
-            'details'               => 'required',
+            'cartList'               => 'required',
             'file'               => 'required',
         ]);
 
@@ -951,11 +951,11 @@ class PaymentProductOrderController extends BaseController
 
             $productIds = array();
 
-            $dataBody->details = json_decode($dataBody->details);
+            $dataBody->cartList = json_decode($dataBody->cartList);
 
-            if( count( $dataBody->details ) == 0 ) return $this->sendError( "No se encuentra productos" );
+            if( count( $dataBody->cartList ) == 0 ) return $this->sendError( "No se encuentra productos" );
 
-            foreach( $dataBody->details as $key => $product ) {
+            foreach( $dataBody->cartList as $key => $product ) {
                 $product = (object) $product;
                 array_push($productIds , $product->product);
             }
