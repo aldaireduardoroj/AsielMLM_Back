@@ -1922,6 +1922,8 @@ class UserController extends BaseController
                 'email'    => $dataBody->email,
                 'uuid'     => $dataBody->dni,
                 'password' => bcrypt($dataBody->password),
+                'address'   => $dataBody?->address ?? '',
+                'phone'   => $dataBody?->phone ?? '',
                 'is_bot'   => true
             ]);
 
