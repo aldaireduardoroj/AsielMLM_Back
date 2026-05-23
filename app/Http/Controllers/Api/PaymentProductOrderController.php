@@ -965,8 +965,8 @@ class PaymentProductOrderController extends BaseController
             $productListCreate = array();
 
             foreach( $productList as $key => $product ) {
-                $keyDetail = array_search( $product->id , array_column($dataBody->details , 'product')  );
-                $productDetail = (object) $dataBody->details[$keyDetail];
+                $keyDetail = array_search( $product->id , array_column($dataBody->cartList , 'product')  );
+                $productDetail = (object) $dataBody->cartList[$keyDetail];
 
                 if( $paymentLog?->paymentOrder?->pack_id != null ){
 
@@ -1015,8 +1015,8 @@ class PaymentProductOrderController extends BaseController
             );
 
             foreach( $productList as $key => $product ) {
-                $keyDetail = array_search( $product->id , array_column($dataBody->details , 'product')  );
-                $productDetail = (object) $dataBody->details[$keyDetail];
+                $keyDetail = array_search( $product->id , array_column($dataBody->cartList , 'product')  );
+                $productDetail = (object) $dataBody->cartList[$keyDetail];
                 $price = $product->price;
                 $subtotal = $product->price * $productDetail->quantity;
                 $_points = 0;
