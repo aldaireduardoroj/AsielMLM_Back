@@ -1599,11 +1599,14 @@ class UserController extends BaseController
                     $userCodeCurrent = User::where("uuid" , $request->query('codeuser'))->first();
                     $userCode = $request->query('codeuser');
                 }
-                
             }
 
-            $paymentProductOrderList = PaymentProductOrder::select('id', 'user_id', 'state' , DB::raw("file as file_id") ,'created_at' , DB::raw('0 as plan') , 'pack_id' ,'phone' ,'points' , 'discount' , DB::raw("'' as payment_order_id") )->whereIn("state", [PaymentProductOrder::PAGADO , PaymentProductOrder::ENVIADO, PaymentProductOrder::PREORDER, PaymentProductOrder::PREORDERPAGADO ]); // ->with(['user','pack','details']);
+            $paymentProductOrderList = PaymentProductOrder::select('id', 'user_id', 'state' , DB::raw("file as file_id") ,'created_at' , DB::raw('0 as plan') , 
+                'pack_id' ,'phone' ,'points' , 'discount', 'amount' , DB::raw("'' as payment_order_id") )
+                ->whereIn("state", [PaymentProductOrder::PAGADO , PaymentProductOrder::ENVIADO, PaymentProductOrder::PREORDER, PaymentProductOrder::PREORDERPAGADO ]); // ->with(['user','pack','details']);
+            
             $userNameCurrentIds = array();
+            
             if( $userCodeCurrent != null ){
 
                 $paymentProductOrderList = $paymentProductOrderList->where("user_id" , $userCodeCurrent->id);
@@ -1615,7 +1618,8 @@ class UserController extends BaseController
             }
 
             $paymentOrders = PaymentLog::select('id', 'user_id', 'state', 'file_id' , 'created_at' , DB::raw('1 as plan') , DB::raw("'' as pack_id") ,
-            DB::raw("'' as phone") , DB::raw("'' as points") , DB::raw("'' as discount") , 'payment_order_id' )->whereIn("state", [PaymentLog::PAGADO, PaymentLog::TERMINADO , PaymentLog::PREORDER]);
+                DB::raw("'' as phone") , DB::raw("'' as points") , DB::raw("'' as discount"), DB::raw("0 as amount") , 'payment_order_id' )
+                ->whereIn("state", [PaymentLog::PAGADO, PaymentLog::TERMINADO , PaymentLog::PREORDER]);
 
             if( $userCodeCurrent != null ){
                 $paymentOrders = $paymentOrders->where("user_id" , $userCodeCurrent->id);

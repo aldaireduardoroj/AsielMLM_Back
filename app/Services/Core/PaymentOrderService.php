@@ -282,7 +282,7 @@ class PaymentOrderService{
                     'product_id'                => $product->id,
                     'product_title'             => $product->title,
                     'quantity'                  => $productDetail->quantity,
-                    'price'                     => 0,
+                    'price'                     => $product->price,
                     'subtotal'                  => 0,
                     'points'                    => 0,
                     'created_at'                => now(),
@@ -295,7 +295,7 @@ class PaymentOrderService{
 
         PaymentProductOrderDetail::insert($productListCreate);
 
-        PaymentOrder::where("id", $paymentOrder->id)->update(
+        PaymentProductOrder::where("id", $paymentProductOrder->id)->update(
             array(
                 'amount' => $totalAmount
             )
