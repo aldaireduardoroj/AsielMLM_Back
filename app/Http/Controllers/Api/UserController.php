@@ -1601,12 +1601,12 @@ class UserController extends BaseController
                 }
             }
 
-            $paymentProductOrderList = PaymentProductOrder::select('id', 'user_id', 'state' , DB::raw("file as file_id") ,'created_at' , DB::raw('0 as plan') , 
+            $paymentProductOrderList = PaymentProductOrder::select('id', 'user_id', 'state' , DB::raw("file as file_id") ,'created_at' , DB::raw('0 as plan') ,
                 'pack_id' ,'phone' ,'points' , 'discount', 'amount' , DB::raw("'' as payment_order_id") )
                 ->whereIn("state", [PaymentProductOrder::PAGADO , PaymentProductOrder::ENVIADO, PaymentProductOrder::PREORDER, PaymentProductOrder::PREORDERPAGADO ]); // ->with(['user','pack','details']);
-            
+
             $userNameCurrentIds = array();
-            
+
             if( $userCodeCurrent != null ){
 
                 $paymentProductOrderList = $paymentProductOrderList->where("user_id" , $userCodeCurrent->id);
@@ -1957,9 +1957,20 @@ class UserController extends BaseController
                         'payment_order_id' => $_paymentOrder->id,
                         "confirm" => true,
                         'user_id' => $userCreated->id,
-                        "state" => PaymentLog::PAGADO,
+                        "state" => PaymentLog::TERMINADO,
                     )
                 );
+
+                PaymentOrderPoint::where("user_id" , $userCreated->id)
+                    ->where("state", true)
+                    ->update( array("state" => false) );
+
+                PaymentProductOrderPoint::where("user_id" , $userCreated->id)
+                    ->update( array( "state" => false ) );
+
+                PaymentProductOrder::where("user_id" , $userCreated->id)
+                    ->where("state", PaymentProductOrder::PAGADO)
+                    ->update( array("state" => PaymentProductOrder::ANULADO) );
             }
 
 
