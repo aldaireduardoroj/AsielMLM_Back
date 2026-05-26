@@ -397,23 +397,23 @@ class UserController extends BaseController
                         // if( $this->confirmPointService->maxChilds( $dataBody->sponsorNew ) ) return $this->sendError('Tu patrocinador esta al limite de invitados.');
 
                         $paymentOrderPoint = PaymentOrderPoint::where("user_id" , 'like', $userUpdated->id)
-                        ->whereIn("type", [ PaymentOrderPoint::PATROCINIO ])
+                        ->whereIn("type", [ PaymentOrderPoint::COMPRA ])
                         ->where("payment" , true)
                         ->first();
 
                         if( $paymentOrderPoint != null ){
                             if( strtoupper( $paymentOrderPoint->sponsor_code ) != strtoupper( $dataBody->sponsorNew ) ){
-                                return $this->sendError('El patrocinador no puede diferente al actual, debe eliminar al usuario para volver a asignarlo.');
+                                return $this->sendError('El patrocinador no puede ser diferente al actual, debe eliminar al usuario para volver a asignarlo.');
                             }
                         }
 
-                        $sponsorId = $this->confirmPointService->verifyChildNewSponsor( $dataBody->sponsorNew );
+                        // $sponsorId = $this->confirmPointService->verifyChildNewSponsor( $dataBody->sponsorNew );
 
                         $_paymentOrder = PaymentOrder::create(
                             array(
                                 'currency' => "PEN",
                                 'amount' => $packCurrent->price,
-                                'sponsor_code' => $sponsorId,
+                                'sponsor_code' => $dataBody->sponsorNew,
                                 'pack_id' => $packCurrent->id,
                                 "token" => $orderId
                             )
@@ -433,8 +433,6 @@ class UserController extends BaseController
                         );
 
                     }else{
-
-
 
                         $paymentOrder = PaymentOrder::create(
                             array(
