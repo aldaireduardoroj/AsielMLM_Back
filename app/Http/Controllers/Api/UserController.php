@@ -665,10 +665,14 @@ class UserController extends BaseController
 
             $packCurrent = Pack::find($paymentOrder->pack_id);
 
+            PaymentOrderPoint::where("user_id" , $userCurrent->id)->where("type" , PaymentOrderPoint::COMPRA)
+                ->update(array("type" => PaymentOrderPoint::RESET, "state" => false));
+            PaymentOrderPoint::where("user_id" , $userCurrent->id)
+                ->update(array("state" => false));
+
             $this->paymentOrderService->confirmPoint($paymentOrder , $userCurrent , $packCurrent);
 
-            // PaymentOrderPoint::where("user_id" , $userCurrent->id)
-            //     ->update(array("sponsor_code" => $dataBody->sponsorCode));
+
 
             DB::commit();
             return $this->sendResponse( 1 , '');
