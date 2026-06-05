@@ -131,4 +131,19 @@ class OptionController extends BaseController
              return $this->sendError($th->getMessage() , $th);
          }
     }
+
+    public function dataReport( Request $request )
+    {
+        try {
+            DB::beginTransaction();
+
+
+            DB::commit();
+            return $this->sendResponse( "base de datos truncate", 'Lista');
+        }
+        catch (\Throwable $th) {
+            DB::rollBack();
+            return $this->sendError($th->getMessage() , $th);
+        }
+    }
 }

@@ -22,6 +22,8 @@ use Carbon\Carbon;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ReportExcelUsers;
 
+use App\Console\Commands\ReportUser;
+
 class ResetUsersActive extends Command
 {
 
@@ -53,6 +55,9 @@ class ResetUsersActive extends Command
     public function handle()
     {
         //
+
+        // En el método handle() de tu comando principal
+        // $this->run(new ReportUser());
 
         $scheduleCron = ScheduleCron::create(array(
             'signature' => "app:reset-users-active",
