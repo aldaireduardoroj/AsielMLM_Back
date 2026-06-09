@@ -57,7 +57,7 @@ class ResetUsersActive extends Command
         //
 
         // En el método handle() de tu comando principal
-        // $this->run(new ReportUser());
+        // $this->run(new ReportUser( new Calculator() ));
 
         $scheduleCron = ScheduleCron::create(array(
             'signature' => "app:reset-users-active",

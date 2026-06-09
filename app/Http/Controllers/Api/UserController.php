@@ -1701,10 +1701,6 @@ class UserController extends BaseController
                 'expired_time' => $dateNow->addHours(2),
             ));
 
-            // $expiredList = InviteUser::where('expired_time', '<', $dateNow)->get();
-            // foreach ($expiredList as $key => $expired) {
-            //     GuestsTokenUser::where('invite_user_id', $expired->id)->update(array("state" => false));
-            // }
             InviteUser::where('expired_time', '<', $dateNow)->update(array("state" => false));
 
             $url = env('APP_URL_FRONT') . '/guest/' . $token;
@@ -1719,13 +1715,6 @@ class UserController extends BaseController
                     "sponsor_name" => $userModel->name,
                     'url'    => $url
                 ];
-
-                // GuestsTokenUser::create(array(
-                //     'sponsor_user_code' => $userModel->uuid,
-                //     'guest_user_code' => $user->code,
-                //     'invite_user_id' => $inviteUser->id,
-                //     'state' => true
-                // ));
 
                 Mail::to($userInvited->email)->send(new InivitedSponsorUser($mailData));
             }
@@ -1752,6 +1741,9 @@ class UserController extends BaseController
             DB::beginTransaction();
 
             $dateNow = Carbon::now();
+
+            InviteUser::where('expired_time', '<', $dateNow)->update(array("state" => false));
+
             $inviteUser = InviteUser::where('token', '=', $dataBody->token)->first();
 
             if( $inviteUser == null ) return $this->sendResponse( "" , "No existe el codigo de invitación.", false);
@@ -1782,6 +1774,9 @@ class UserController extends BaseController
             DB::beginTransaction();
             $dateNow = Carbon::now();
             $dataBody = (object) $request->all();
+
+            InviteUser::where('expired_time', '<', $dateNow)->update(array("state" => false));
+
             $inviteUser = InviteUser::where('token', '=', $dataBody->token)->first();
 
             $paymentLog = PaymentLog::where("user_id", $userId)->whereIn("state", [PaymentLog::PAGADO, PaymentLog::TERMINADO])->first();
@@ -1798,7 +1793,7 @@ class UserController extends BaseController
                 'state' => $dataBody->accept
             ));
 
-            InviteUser::where('token', '=', $dataBody->token)->update(array("state" => false));
+            // InviteUser::where('token', '=', $dataBody->token)->update(array("state" => false));
 
             DB::commit();
             return $this->sendResponse( 1 , '');
