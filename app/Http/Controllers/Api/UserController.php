@@ -332,9 +332,28 @@ class UserController extends BaseController
 
             if( $userUpdated == null ) return $this->sendError( "No se existe el usuario seleccionado" );
 
-            User::where("uuid" , $dataBody->userCode)->update(
-                array( "name" => $dataBody->userFullName )
-            );
+            $updateData = [
+                "name" => $dataBody->userFullName
+            ];
+
+            if (!empty($dataBody->password)) {
+                $updateData["password"] = bcrypt($dataBody->password);
+            }
+
+            if (!empty($dataBody->userDni)) {
+
+                $exists = User::where('uuid', $dataBody->userDni)
+                    ->where('id', '!=', $userUpdated->id)
+                    ->exists();
+
+                if ($exists) {
+                    return $this->sendError('El DNI ya se encuentra registrado');
+                }
+
+                $updateData["uuid"] = $dataBody->userDni;
+            }
+
+            User::where("id", $userUpdated->id)->update($updateData);
 
             $ischange = false;
 
