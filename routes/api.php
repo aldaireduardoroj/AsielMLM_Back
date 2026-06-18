@@ -57,6 +57,7 @@ Route::prefix('v1')->group(function () {
         Route::post('auth/update/avatar', [UserController::class, 'authUpdateAvatar']);
         Route::put('auth/update', [UserController::class, 'authUpdate']);
         Route::get('auth/search', [UserController::class, 'search']);
+        Route::post('auth/update-bank', [UserController::class, 'modifyUserBank']);
 
         Route::post('payment/flow', [PaymentOrderController::class, 'flowCreate']);
         Route::post('payment/flow/create-offline', [PaymentOrderController::class, 'flowCreateOffline']);
@@ -83,7 +84,7 @@ Route::prefix('v1')->group(function () {
 
         Route::get('users/find-all', [UserController::class, 'findAll']);
         Route::post('users/modify', [UserController::class, 'modifyUser']);
-        Route::post('users/update-bank', [UserController::class, 'modifyUserBank']);
+
         Route::post('users/change-sponsor', [UserController::class, 'changeSponsor']);
         Route::post('users/reset', [UserController::class, 'resetPoint']);
         Route::post('users/reset-all', [UserController::class, 'resetAll']);
