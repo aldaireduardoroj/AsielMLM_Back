@@ -496,6 +496,43 @@ class UserController extends BaseController
         }
     }
 
+    public function modifyUserBank( Request $request )
+    {
+        // $validator = Validator::make($request->all(), [
+        //     'bankName' => 'required',
+        //     'numberAccountBank' => 'required',
+        //     'numberAccountInterBank' => 'required',
+        //     'ruc' => 'required',
+        //     'companyName' => 'required',
+        //     'paypal' => 'required',
+        // ]);
+
+        // if ($validator->fails()) return $this->sendError('Error de validacion.', $validator->errors(), 422);
+
+        try {
+            $user_id = Auth::id();
+            DB::beginTransaction();
+            $userModel = User::with(['file'])->find($user_id);
+
+            $dataBody = (object) $request->all();
+
+            $updated = User::where("id", $user_id)->update(array(
+                'bank_name' => $dataBody->bankName ?? "",
+                'number_account_bank' => $dataBody->numberAccountBank ?? "",
+                'number_account_interbank' => $dataBody->numberAccountInterBank ?? "",
+                'ruc' => $dataBody->ruc ?? "",
+                'company_name' => $dataBody->companyName ?? "",
+                'paypal' => $dataBody->paypal ?? "",
+            ));
+
+            DB::commit();
+            return $this->sendResponse( $updated , 'User update bank');
+        } catch (Exception $e) {
+            DB::rollBack();
+            return $this->sendError( $e->getMessage() );
+        }
+    }
+
     public function search(Request $request)
     {
         try {

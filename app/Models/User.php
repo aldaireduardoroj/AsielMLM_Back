@@ -29,7 +29,13 @@ class User extends Authenticatable
         'city',
         'country',
         'gender',
-        'is_bot'
+        'is_bot',
+        'bank_name',
+        'number_account_bank',
+        'number_account_interbank',
+        'ruc',
+        'company_name',
+        'paypal'
     ];
 
     /**
