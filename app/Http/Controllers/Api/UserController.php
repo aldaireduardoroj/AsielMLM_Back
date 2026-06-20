@@ -340,18 +340,18 @@ class UserController extends BaseController
                 $updateData["password"] = bcrypt($dataBody->password);
             }
 
-            if (!empty($dataBody->userDni)) {
+            // if (!empty($dataBody->userDni)) {
 
-                $exists = User::where('uuid', $dataBody->userDni)
-                    ->where('id', '!=', $userUpdated->id)
-                    ->exists();
+            //     $exists = User::where('uuid', $dataBody->userDni)
+            //         ->where('id', '!=', $userUpdated->id)
+            //         ->exists();
 
-                if ($exists) {
-                    return $this->sendError('El DNI ya se encuentra registrado');
-                }
+            //     if ($exists) {
+            //         return $this->sendError('El DNI ya se encuentra registrado');
+            //     }
 
-                $updateData["uuid"] = $dataBody->userDni;
-            }
+            //     $updateData["uuid"] = $dataBody->userDni;
+            // }
 
             User::where("id", $userUpdated->id)->update($updateData);
 
