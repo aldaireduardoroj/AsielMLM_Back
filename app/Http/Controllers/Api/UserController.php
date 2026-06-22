@@ -332,28 +332,41 @@ class UserController extends BaseController
 
             if( $userUpdated == null ) return $this->sendError( "No se existe el usuario seleccionado" );
 
-            $updateData = [
+            User::where("id", $userUpdated->id)->update([
                 "name" => $dataBody->userFullName
-            ];
+            ]);
 
-            if (!empty($dataBody->password)) {
+            if (!empty( trim($dataBody->password) )) {
                 $updateData["password"] = bcrypt($dataBody->password);
+                User::where("id", $userUpdated->id)->update($updateData);
             }
 
-            // if (!empty($dataBody->userDni)) {
+            if (!empty(trim($dataBody->userDni))) {
 
-            //     $exists = User::where('uuid', $dataBody->userDni)
-            //         ->where('id', '!=', $userUpdated->id)
-            //         ->exists();
+                $exists = User::where('uuid', $dataBody->userDni)
+                    ->first();
 
-            //     if ($exists) {
-            //         return $this->sendError('El DNI ya se encuentra registrado');
-            //     }
+                if ($exists != null) {
+                    return $this->sendError('El DNI ya se encuentra registrado');
+                }
 
-            //     $updateData["uuid"] = $dataBody->userDni;
-            // }
+                User::where("id", $userUpdated->id)->update([
+                    "uuid" => $dataBody->userDni
+                ]);
 
-            User::where("id", $userUpdated->id)->update($updateData);
+                PaymentOrder::where("sponsor_code", $userUpdated->uuid)->update([
+                    "sponsor_code" => $dataBody->userDni
+                ]);
+
+                PaymentOrderPoint::where("user_code", $userUpdated->uuid)->update([
+                    "user_code" => $dataBody->userDni
+                ]);
+
+                PaymentOrderPoint::where("sponsor_code", $userUpdated->uuid)->update([
+                    "sponsor_code" => $dataBody->userDni
+                ]);
+
+            }
 
             $ischange = false;
 
