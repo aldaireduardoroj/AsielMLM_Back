@@ -290,6 +290,7 @@ class UserController extends BaseController
             if( $_userModel->paymentActive != null ){
                 $countUserActive += 1;
             }
+            var_dump( "--------" );
             var_dump($countUserActive, $userSponsor->user_code );
 
             $countUserActive += $this->loopUsersActive( $userSponsor->user_code , $points, $countUserActive);
