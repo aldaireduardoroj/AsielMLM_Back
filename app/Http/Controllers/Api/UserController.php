@@ -281,7 +281,7 @@ class UserController extends BaseController
 
     private function loopUsersActive( string $codeUuid , $points, $countUserActive = 0)
     {
-        $_a_userSponsor = array_filter($points, fn($n) => strtolower($n->sponsor_code) == strtolower($codeUuid) && $n->payment == 1 && $n->type == "B" );
+        $_a_userSponsor = array_filter($points, fn($n) => strtolower($n->sponsor_code) == strtolower($codeUuid) && $n->payment == 1 );
 
         foreach ($_a_userSponsor as $keyuserSponsor => $userSponsor)
         {
@@ -297,7 +297,7 @@ class UserController extends BaseController
 
     private function loopUsersAll( string $codeUuid , $points, $countUserAll = 0)
     {
-        $_a_userSponsor = array_filter($points, fn($n) => strtolower($n->sponsor_code) == strtolower($codeUuid) && $n->payment == 1 && $n->type == "B" );
+        $_a_userSponsor = array_filter($points, fn($n) => strtolower($n->sponsor_code) == strtolower($codeUuid) && $n->payment == 1 );
 
         $countUserAll = count($_a_userSponsor);
 
