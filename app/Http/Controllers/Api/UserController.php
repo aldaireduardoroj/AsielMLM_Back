@@ -376,7 +376,7 @@ class UserController extends BaseController
 
             $paymentLogOld = PaymentLog::with(['paymentOrder'])
                 ->where("user_id" ,  $userUpdated->id )
-                ->whereIn("state" , [ PaymentLog::PAGADO, PaymentLog::TERMINADO])
+                ->whereIn("state" , [ PaymentLog::PAGADO ]) // PaymentLog::TERMINADO
                 ->orderBy('created_at', 'desc')->first();
 
             if( $paymentLogOld != null ){
