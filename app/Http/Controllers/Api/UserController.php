@@ -246,7 +246,8 @@ class UserController extends BaseController
                     ->where( function ($query) {
                         $query->where('state' , PaymentLog::PAGADO)
                         ->orWhere('state' , PaymentLog::PREORDER)
-                        ->orWhere('state' , PaymentLog::TERMINADO);
+                        ->orWhere('state' , PaymentLog::TERMINADO)
+                        ->orWhere('state' , PaymentLog::DESACTIVE);
                     })
                     ->orderBy('created_at', 'desc')
                     ->first();
