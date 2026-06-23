@@ -239,7 +239,7 @@ class UserController extends BaseController
 
             $paymentOrderPoint = PaymentOrderPoint::select('user_code','sponsor_code','type','payment', 'created_at')
                 ->with(['paymentOrder.paymentLog'])->where("type" , PaymentOrderPoint::COMPRA )
-                ->distinct()->orderBy('created_at', 'desc')->get()->all();
+                ->distinct()->orderBy('created_at', 'desc')->get();
 
             foreach ($userList as $key => $user) {
                 $userList[$key]->payment = PaymentLog::with(['paymentOrder.pack' , 'paymentOrder.sponsor.file', 'fileImage'])->where( "user_id" ,  $user->id )
@@ -289,7 +289,7 @@ class UserController extends BaseController
 
             if( $_userModel->paymentActive != null ) $countUserActive++;
 
-            // $countUserActive += $this->loopUsersActive( $userSponsor->user_code , $points, $countUserActive);
+            $countUserActive += $this->loopUsersActive( $userSponsor->user_code , $points, $countUserActive);
         }
 
         return $countUserActive;
