@@ -279,7 +279,7 @@ class UserController extends BaseController
         }
     }
 
-    private function loopUsersActive( string $codeUuid , $points, $countUserActive = 0)
+    private function loopUsersActive( string $codeUuid , $points, $countUserActive = 0): int
     {
         $_a_userSponsor = array_filter($points, fn($n) => strtolower($n->sponsor_code) == strtolower($codeUuid) && $n->payment == 1 );
 
