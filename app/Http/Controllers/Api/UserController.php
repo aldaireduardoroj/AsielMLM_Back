@@ -285,7 +285,7 @@ class UserController extends BaseController
 
         foreach ($_a_userSponsor as $keyuserSponsor => $userSponsor)
         {
-            $_userModel = User::with(['paymentActive'])->where('uuid',$codeUuid)->first();
+            $_userModel = User::with(['paymentActive'])->where('uuid',$userSponsor->user_code)->first();
 
             if( $_userModel->paymentActive ) $countUserActive++;
 
