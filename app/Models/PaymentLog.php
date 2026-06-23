@@ -24,6 +24,7 @@ class PaymentLog extends Model
     const RESET = 7;
     const REBBOT = 8;
     const PREORDER = 9;
+    const DESACTIVE = 10;
     /*
         1 PENDIENTE DE PAGO
         2 PAGADA

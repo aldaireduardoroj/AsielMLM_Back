@@ -373,18 +373,10 @@ class UserController extends BaseController
 
             $ischange = false;
 
-            $paymentLogOld = PaymentLog::with(['paymentOrder'])->where("user_id" ,  $userUpdated->id )->whereIn("state" , [ PaymentLog::PAGADO ,  PaymentLog::TERMINADO])->orderBy('created_at', 'desc')->first();
-
-            $paymentLogs = PaymentLog::with(['paymentOrder'])
-                ->where( "user_id" ,  $user_id )
-                ->where( function ($query) {
-                    $query->where('state' , PaymentLog::PAGADO)
-                    ->orWhere('state' , PaymentLog::TERMINADO);
-                })
-                ->orderBy('created_at', 'desc')
-                ->first();
-
-            $paymentLogs = (object) $paymentLogs;
+            $paymentLogOld = PaymentLog::with(['paymentOrder'])
+                ->where("user_id" ,  $userUpdated->id )
+                ->whereIn("state" , [ PaymentLog::PAGADO, PaymentLog::TERMINADO, PaymentLog::DESACTIVE])
+                ->orderBy('created_at', 'desc')->first();
 
             if( $paymentLogOld != null ){
                 $paymentOrderOld = PaymentOrder::where("id" ,  $paymentLogOld->payment_order_id )->first();
@@ -398,11 +390,11 @@ class UserController extends BaseController
 
             if( $ischange ) {
 
-                PaymentLog::where("user_id" ,  $userUpdated->id )->where("state" ,  PaymentLog::PAGADO )->update(
-                    array(
-                        "state" => PaymentLog::TERMINADO,
-                    )
-                );
+                // PaymentLog::where("user_id" ,  $userUpdated->id )->where("state" ,  PaymentLog::PAGADO )->update(
+                //     array(
+                //         "state" => PaymentLog::TERMINADO,
+                //     )
+                // );
 
                 if( $dataBody->packId != 1 ){
 
@@ -429,8 +421,6 @@ class UserController extends BaseController
 
                     if( !empty($dataBody->sponsorNew) ){
 
-                        // if( $this->confirmPointService->maxChilds( $dataBody->sponsorNew ) ) return $this->sendError('Tu patrocinador esta al limite de invitados.');
-
                         $paymentOrderPoint = PaymentOrderPoint::where("user_id" , 'like', $userUpdated->id)
                         ->whereIn("type", [ PaymentOrderPoint::COMPRA ])
                         ->where("payment" , true)
@@ -441,8 +431,6 @@ class UserController extends BaseController
                                 return $this->sendError('El patrocinador no puede ser diferente al actual, debe eliminar al usuario para volver a asignarlo.');
                             }
                         }
-
-                        // $sponsorId = $this->confirmPointService->verifyChildNewSponsor( $dataBody->sponsorNew );
 
                         $_paymentOrder = PaymentOrder::create(
                             array(
@@ -481,7 +469,7 @@ class UserController extends BaseController
 
                         $this->paymentOrderService->confirmPoint($paymentOrder , $userUpdated , $packCurrent);
 
-                        $paymentLog = PaymentLog::create(
+                        PaymentLog::create(
                             array(
                                 'payment_order_id' => $paymentOrder->id,
                                 "confirm" => true,
@@ -501,6 +489,14 @@ class UserController extends BaseController
                     PaymentProductOrder::where("user_id" , $userUpdated->id)
                         ->where("state", PaymentProductOrder::PAGADO)
                         ->update( array("state" => PaymentProductOrder::ANULADO) );
+
+                    PaymentLog::where("user_id" ,  $userUpdated->id )
+                        ->where("state" ,  PaymentLog::PAGADO )
+                        ->update(
+                        array(
+                            "state" => PaymentLog::DESACTIVE,
+                        )
+                    );
                 }
             }
 
