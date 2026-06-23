@@ -376,15 +376,18 @@ class UserController extends BaseController
 
             $paymentLogOld = PaymentLog::with(['paymentOrder'])
                 ->where("user_id" ,  $userUpdated->id )
-                ->whereIn("state" , [ PaymentLog::PAGADO ]) // PaymentLog::TERMINADO
+                ->whereIn("state" , [ PaymentLog::PAGADO, PaymentLog::TERMINADO ]) // PaymentLog::TERMINADO
                 ->orderBy('created_at', 'desc')->first();
 
             if( $paymentLogOld != null ){
-                $paymentOrderOld = PaymentOrder::where("id" ,  $paymentLogOld->payment_order_id )->first();
+                if( $paymentLogOld->state == PaymentLog::PAGADO ){
+                    $paymentOrderOld = PaymentOrder::where("id" ,  $paymentLogOld->payment_order_id )->first();
 
-                if( $paymentOrderOld != null ){
-                    if( $paymentOrderOld->pack_id != $dataBody->packId ) $ischange = true;
+                    if( $paymentOrderOld != null ){
+                        if( $paymentOrderOld->pack_id != $dataBody->packId ) $ischange = true;
+                    }
                 }
+
             }else{
                 if( $dataBody->packId != 1 ) $ischange = true;
             }
