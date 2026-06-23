@@ -239,7 +239,7 @@ class UserController extends BaseController
 
             $paymentOrderPoint = PaymentOrderPoint::select('user_code','sponsor_code','type','payment', 'created_at')
                 ->where("type" , PaymentOrderPoint::COMPRA )
-                ->distinct()->orderBy('created_at', 'desc')->get()->all();
+                ->distinct()->orderBy('created_at', 'desc')->get();
 
             foreach ($userList as $key => $user) {
                 $userList[$key]->payment = PaymentLog::with(['paymentOrder.pack' , 'paymentOrder.sponsor.file', 'fileImage'])->where( "user_id" ,  $user->id )
@@ -253,9 +253,9 @@ class UserController extends BaseController
                 $_id = $user->id;
                 $paymentProductOrderPoints = PaymentProductOrderPoint::where("user_id" , $user->id)->where("state" , true)->get();
 
-                $a_userDirects = array_filter($paymentOrderPoint, fn($n) => strtolower($n->sponsor_code) == strtolower($user->uuid) && $n->payment == 1 );
-                $countUserActive = $this->loopUsersActive($user->uuid, $paymentOrderPoint );
-                $countUserAll = $this->loopUsersAll($user->uuid, $paymentOrderPoint );
+                $a_userDirects = array_filter($paymentOrderPoint->all(), fn($n) => strtolower($n->sponsor_code) == strtolower($user->uuid) && $n->payment == 1 );
+                $countUserActive = $this->loopUsersActive($user->uuid, $paymentOrderPoint->all() );
+                $countUserAll = $this->loopUsersAll($user->uuid, $paymentOrderPoint->all() );
                 // $countUserActive = 0;
 
 
@@ -287,7 +287,7 @@ class UserController extends BaseController
         {
             $_userModel = User::with(['paymentActive'])->where('uuid', $userSponsor->user_code)->first();
 
-            if( $_userModel->paymentActive == null ) $countUserActive++;
+            if( $_userModel->paymentActive != null ) $countUserActive++;
 
             $countUserActive += $this->loopUsersActive( $userSponsor->user_code , $points, $countUserActive);
         }
