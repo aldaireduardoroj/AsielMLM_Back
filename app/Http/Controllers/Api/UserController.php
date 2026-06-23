@@ -376,7 +376,7 @@ class UserController extends BaseController
 
             $paymentLogOld = PaymentLog::with(['paymentOrder'])
                 ->where("user_id" ,  $userUpdated->id )
-                ->whereIn("state" , [ PaymentLog::PAGADO, PaymentLog::TERMINADO, PaymentLog::DESACTIVE])
+                ->whereIn("state" , [ PaymentLog::PAGADO, PaymentLog::TERMINADO])
                 ->orderBy('created_at', 'desc')->first();
 
             if( $paymentLogOld != null ){
@@ -391,11 +391,11 @@ class UserController extends BaseController
 
             if( $ischange ) {
 
-                // PaymentLog::where("user_id" ,  $userUpdated->id )->where("state" ,  PaymentLog::PAGADO )->update(
-                //     array(
-                //         "state" => PaymentLog::TERMINADO,
-                //     )
-                // );
+                PaymentLog::where("user_id" ,  $userUpdated->id )->where("state" ,  PaymentLog::PAGADO )->update(
+                    array(
+                        "state" => PaymentLog::TERMINADO,
+                    )
+                );
 
                 if( $dataBody->packId != 1 ){
 
@@ -491,13 +491,6 @@ class UserController extends BaseController
                         ->where("state", PaymentProductOrder::PAGADO)
                         ->update( array("state" => PaymentProductOrder::ANULADO) );
 
-                    PaymentLog::where("user_id" ,  $userUpdated->id )
-                        ->where("state" ,  PaymentLog::PAGADO )
-                        ->update(
-                        array(
-                            "state" => PaymentLog::DESACTIVE,
-                        )
-                    );
                 }
             }
 
