@@ -128,9 +128,7 @@ class PaymentOrderService{
             }
 
 
-        }else
-
-
+        }
         if( !$reactiveAdmin ){
             foreach ($_paymentOrderPoints as $key => $_paymentOrderPoint) {
                 $_paymentOrderPoint = (object) $_paymentOrderPoint;
