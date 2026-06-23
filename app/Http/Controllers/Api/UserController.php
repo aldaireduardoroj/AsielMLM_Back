@@ -287,7 +287,9 @@ class UserController extends BaseController
         {
             $_userModel = User::with(['paymentActive'])->where('uuid', 'like', $userSponsor->user_code)->first();
 
-            if( $_userModel->paymentActive != null ) $countUserActive++;
+            if( $_userModel->paymentActive != null ){
+                $countUserActive += 1;
+            }
             var_dump($countUserActive,$userSponsor->user_code );
 
             $countUserActive += $this->loopUsersActive( $userSponsor->user_code , $points, $countUserActive);
