@@ -281,7 +281,7 @@ class UserController extends BaseController
 
     private function loopUsersActive( string $codeUuid , $points, $countUserActive = 0)
     {
-        $_a_userSponsor = array_filter($points, fn($n) => strtolower($n->sponsor_code) == strtolower($codeUuid) && $n->payment == 1 && $n->type != "G" );
+        $_a_userSponsor = array_filter($points, fn($n) => strtolower($n->sponsor_code) == strtolower($codeUuid) && $n->payment == 1 && $n->type == "B" );
 
         foreach ($_a_userSponsor as $keyuserSponsor => $userSponsor)
         {
@@ -297,7 +297,7 @@ class UserController extends BaseController
 
     private function loopUsersAll( string $codeUuid , $points, $countUserAll = 0)
     {
-        $_a_userSponsor = array_filter($points, fn($n) => strtolower($n->sponsor_code) == strtolower($codeUuid) && $n->payment == 1 && $n->type != "G" );
+        $_a_userSponsor = array_filter($points, fn($n) => strtolower($n->sponsor_code) == strtolower($codeUuid) && $n->payment == 1 && $n->type == "B" );
 
         $countUserAll = count($_a_userSponsor);
 
@@ -1666,10 +1666,8 @@ class UserController extends BaseController
             $userCode = "";
             $userCodeCurrent = null;
             if( $request->has('codeuser') ) if( !empty($request->query('codeuser')) ){
-                if( !$userModel->is_admin ){
-                    $userCodeCurrent = User::where("uuid" , $request->query('codeuser'))->first();
-                    $userCode = $request->query('codeuser');
-                }
+                $userCodeCurrent = User::where("uuid" , $request->query('codeuser'))->first();
+                $userCode = $request->query('codeuser');
             }
 
             $paymentProductOrderList = PaymentProductOrder::select('id', 'user_id', 'state' , DB::raw("file as file_id") ,'created_at' , DB::raw('0 as plan') ,
