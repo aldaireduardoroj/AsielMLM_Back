@@ -380,16 +380,19 @@ class UserController extends BaseController
                 ->orderBy('created_at', 'desc')->first();
 
             if( $paymentLogOld != null ){
+                if( $paymentLogOld->state == PaymentLog::TERMINADO && $dataBody->packId != 1){
+                    $ischange = true;
+                }else{
+                    $paymentOrderOld = PaymentOrder::where("id" ,  $paymentLogOld->payment_order_id )->first();
 
-                $paymentOrderOld = PaymentOrder::where("id" ,  $paymentLogOld->payment_order_id )->first();
-
-                if( $paymentOrderOld != null ){
-                    if( $paymentOrderOld->pack_id != $dataBody->packId ) $ischange = true;
+                    if( $paymentOrderOld != null ){
+                        if( $paymentOrderOld->pack_id != $dataBody->packId ) $ischange = true;
+                    }
                 }
+
             }else{
-                if( $paymentLogOld->state == PaymentLog::PAGADO ){
-                    if( $dataBody->packId != 1 ) $ischange = true;
-                }
+
+                if( $dataBody->packId != 1 ) $ischange = true;
 
             }
 
