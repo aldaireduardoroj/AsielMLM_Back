@@ -683,18 +683,6 @@ class PaymentProductOrderController extends BaseController
 
                         $option = Option::where("option_key", 'reactive_point')->first();
 
-                        // desabilitado - 15-06
-
-                        // PaymentOrderPoint::create(array(
-                        //     'payment_order_id' => $paymentOrder->id,
-                        //     'user_code' => $userCurrent->uuid,
-                        //     'sponsor_code' => $paymentOrder->sponsor_code,
-                        //     'point' => floatval($option->option_value ?? "200"),
-                        //     'payment' => true,
-                        //     'type' => PaymentOrderPoint::COMPRA,
-                        //     'user_id' => $userCurrent->id
-                        // ));
-
                         LogPayment::create(array(
                             'type'  => LogPayment::IZIPAYPRODUCT ,
                             'message' => "IZIPAYPRODUCT",
@@ -1097,7 +1085,7 @@ class PaymentProductOrderController extends BaseController
 
             $userCurrent = User::find( $paymentProductOrder->user_id );
 
-            $this->paymentOrderService->confirmPointAfiliado( $userCurrent, $paymentProductOrder->points , $personalPoint);
+            $this->paymentOrderService->confirmPointAfiliado( $userCurrent, $paymentProductOrder->points , $personalPoint, true);
 
             if( $personalPoint >= floatval($maxPointsProduct->option_value) )
             {

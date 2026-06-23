@@ -60,7 +60,7 @@ class PaymentOrderService{
             $level = $sponsorshipPoint->level1;
             $point = floatval($packCurrent->points) * floatval($level) / 100;
 
-            
+
             if($paymentOrder->pack_id == ($optPackInitFast?->option_value ?? "")){
                 PaymentOrderPoint::create(array(
                     'payment_order_id' => $paymentOrder->id,
@@ -82,7 +82,7 @@ class PaymentOrderService{
                     'user_id' => $userCurrent->id
                 ));
             }
-            
+
 
         }else if( $paymentLogsCount > 0 ){
 
@@ -126,8 +126,8 @@ class PaymentOrderService{
                     ));
                 }
             }
-            
-            
+
+
         }else
 
 
@@ -151,7 +151,7 @@ class PaymentOrderService{
 
     }
 
-    public function confirmPointAfiliado( $userCurrent, $points )
+    public function confirmPointAfiliado( $userCurrent, $points, $isBuyStore = false )
     {
         $paymentLog = PaymentLog::where( "user_id" , $userCurrent->id )
                 ->whereIn("state" , [PaymentLog::TERMINADO, PaymentLog::PAGADO] )->orderBy('created_at', 'desc')->first();
@@ -176,21 +176,22 @@ class PaymentOrderService{
                     $rangeResidualPoints = RangeResidualPoints::where("range_id", 1)->first();
                 }
 
-                
+
                 foreach ($_paymentOrderPoints as $key => $_paymentOrderPoint) {
 
                     $_paymentOrderPoint = (object) $_paymentOrderPoint;
                     $key++;
-
-                    PaymentOrderPoint::create(array(
-                        'payment_order_id' => $paymentLog->payment_order_id,
-                        'user_code' => $_paymentOrderPoint->user_code,
-                        'sponsor_code' => $_paymentOrderPoint->sponsor_code,
-                        'point' => $points,
-                        'payment' => false,
-                        'type' => PaymentOrderPoint::GRUPAL,
-                        'user_id' => $userCurrent->id
-                    ));
+                    if( $isBuyStore ){
+                        PaymentOrderPoint::create(array(
+                            'payment_order_id' => $paymentLog->payment_order_id,
+                            'user_code' => $_paymentOrderPoint->user_code,
+                            'sponsor_code' => $_paymentOrderPoint->sponsor_code,
+                            'point' => $points,
+                            'payment' => false,
+                            'type' => PaymentOrderPoint::GRUPAL,
+                            'user_id' => $userCurrent->id
+                        ));
+                    }
 
                     if( $key > 9 ) continue;
 
