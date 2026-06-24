@@ -149,7 +149,7 @@ class PaymentOrderService{
 
     }
 
-    public function confirmPointAfiliado( $userCurrent, $points, $isBuyStore = false )
+    public function confirmPointAfiliado( $userCurrent, $points, $isBuyStore = true )
     {
         $paymentLog = PaymentLog::where( "user_id" , $userCurrent->id )
                 ->whereIn("state" , [PaymentLog::TERMINADO, PaymentLog::PAGADO] )->orderBy('created_at', 'desc')->first();

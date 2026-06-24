@@ -1085,7 +1085,7 @@ class PaymentProductOrderController extends BaseController
 
             $userCurrent = User::find( $paymentProductOrder->user_id );
 
-            $this->paymentOrderService->confirmPointAfiliado( $userCurrent, $paymentProductOrder->points , $personalPoint, true);
+            $this->paymentOrderService->confirmPointAfiliado( $userCurrent, $paymentProductOrder->points , $personalPoint, false);
 
             if( $personalPoint >= floatval($maxPointsProduct->option_value) )
             {
