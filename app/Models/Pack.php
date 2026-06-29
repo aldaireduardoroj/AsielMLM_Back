@@ -16,6 +16,14 @@ class Pack extends Model
 
     protected $primaryKey = 'id';
 
+    protected function casts(): array
+    {
+        return [
+            'price' => 'float',
+            'discount' => 'float',
+        ];
+    }
+
     protected $fillable = [
         'id',
         'title',

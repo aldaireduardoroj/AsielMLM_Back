@@ -29,6 +29,7 @@ class StorageController extends BaseController{
             $user_id = Auth::id();
 
             $fileId = 0;
+            $filePath = "";
 
             if($request->hasfile('file'))
             {
@@ -45,7 +46,10 @@ class StorageController extends BaseController{
 
             DB::commit();
 
-            return $this->sendResponse( $fileId, 'Creado');
+            return $this->sendResponse( array(
+                'fileId' => $fileId,
+                'path' => $filePath
+            ), 'Creado');
 
 
         } catch (Exception $e) {
