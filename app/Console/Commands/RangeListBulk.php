@@ -114,39 +114,42 @@ class RangeListBulk extends Command
                     // }
                     $countActive = $this->createActiveDirect($userPoint->user->uuid);
                     if( $range->id == 1){
-                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 1 && ( $points->pointGroup >= 2000 && $userPoint->user->paymentActive != null) ) );
+                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, true );
                     
                     }else if( $range->id == 2){
+                        $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 1 && ( $points->pointGroup >= 2000 && $userPoint->user->paymentActive != null) ) );
+                    
+                    }else if( $range->id == 3){
                         $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 2 && ( $points->pointGroup >= 4000 && $userPoint->user->paymentActive != null) ) );
 
-                    }else if( $range->id == 3){
+                    }else if( $range->id == 4){
                         $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 3 && ( $points->pointGroup >= 8000 && $userPoint->user->paymentActive != null) ) );
 
-                    }else if( $range->id == 4){
+                    }else if( $range->id == 5){
                         $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 3 && ( $points->pointGroup >= 18000 && $userPoint->user->paymentActive != null) ) );
 
-                    }else if( $range->id == 5){
+                    }else if( $range->id == 6){
                         $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 3 && ( $points->pointGroup >= 40000 && $userPoint->user->paymentActive != null) ) );
 
-                    }else if( $range->id == 6){
+                    }else if( $range->id == 7){
                         $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 4 && ( $points->pointGroup >= 100000 && $userPoint->user->paymentActive != null) ) );
 
-                    }else if( $range->id == 7){
+                    }else if( $range->id == 8){
                         $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 4 && ( $points->pointGroup >= 210000 && $userPoint->user->paymentActive != null) ) );
 
-                    }else if( $range->id == 8){
+                    }else if( $range->id == 9){
                         $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 5 && ( $points->pointGroup >= 380000 && $userPoint->user->paymentActive != null) ) );
 
-                    }else if( $range->id == 9){
+                    }else if( $range->id == 10){
                         $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 5 && ( $points->pointGroup >= 640000 && $userPoint->user->paymentActive != null) ) );
 
-                    }else if( $range->id == 10){
+                    }else if( $range->id == 11){
                         $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 6 && ( $points->pointGroup >= 1250000 && $userPoint->user->paymentActive != null) ) );
 
-                    }else if( $range->id == 11){
+                    }else if( $range->id == 12){
                         $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 6 && ( $points->pointGroup >= 2500000 && $userPoint->user->paymentActive != null) ) );
 
-                    }else if( $range->id == 12){
+                    }else if( $range->id == 13){
                         $this->createUpdateRangeUser( $userPoint->user->id , $range->id, ($countActive >= 7 && ( $points->pointGroup >= 5000000 && $userPoint->user->paymentActive != null) ) );
 
                     }
