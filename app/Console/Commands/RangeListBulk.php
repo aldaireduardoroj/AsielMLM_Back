@@ -113,6 +113,7 @@ class RangeListBulk extends Command
                     //     if( $_user->user->paymentActive != null ) $countChild++;
                     // }
                     $countActive = $this->createActiveDirect($userPoint->user->uuid);
+                    
                     if( $range->id == 1){
                         $this->createUpdateRangeUser( $userPoint->user->id , $range->id, true );
                     

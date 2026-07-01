@@ -219,6 +219,7 @@ class PaymentOrderService{
                         'type' => PaymentOrderPoint::RESIDUAL,
                         'user_id' => $userCurrent->id
                     ));
+                    
 
                     GeneratonialResidualPoints::create(array(
                         'user_id' => $userCurrent->id,
