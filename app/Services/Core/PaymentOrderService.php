@@ -195,9 +195,9 @@ class PaymentOrderService{
 
                     $level = $rangeResidualPoints->{'level'.($key)};
 
-                    if( $level == 0 ) continue;
+                    // if( $level == 0 ) continue;
 
-                    $point = $points * floatval($level) / 100;
+                    $point = $level == 0 ? 0 : ($points * floatval($level) / 100);
 
                     $userGivePoint = User::where("uuid", $_paymentOrderPoint->sponsor_code)->first();
 

@@ -113,7 +113,7 @@ class RangeListBulk extends Command
                     //     if( $_user->user->paymentActive != null ) $countChild++;
                     // }
                     $countActive = $this->createActiveDirect($userPoint->user->uuid);
-                    
+
                     if( $range->id == 1){
                         $this->createUpdateRangeUser( $userPoint->user->id , $range->id, true );
                     
@@ -266,7 +266,9 @@ class RangeListBulk extends Command
                 ));
             }else{
                 if( $rangeUser->range_id != $rangeId ){
-                    $generatonialResidualPoint = GeneratonialResidualPoints::where("user_id", $userId)->where("range_id", $rangeUser->range_id)->first();
+                    $generatonialResidualPoint = GeneratonialResidualPoints::where("user_id", $userId)
+                        ->where("state", true)
+                        ->where("range_id", $rangeUser->range_id)->first();
                     if( $generatonialResidualPoint != null ){
                         $rangeResidualPoint = RangeResidualPoints::where("range_id", $rangeId)->first();
 
