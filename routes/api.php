@@ -96,7 +96,7 @@ Route::prefix('v1')->group(function () {
         Route::post('users/pdf-finance', [UserController::class, 'exportPdfFinance']);
         Route::post('users/excel-finance', [UserController::class, 'exportExcelFinance']);
 
-        Route::post('users/excel-finance', [UserController::class, 'exportExcelFinance']);
+        //Route::post('users/excel-finance', [UserController::class, 'exportExcelFinance']);
         Route::get('users/cash-flow', [UserController::class, 'cashFlowFilter']);
         Route::get('users/payments/find-all', [UserController::class, 'paymentsAll']);
 

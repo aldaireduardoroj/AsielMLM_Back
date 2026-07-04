@@ -92,7 +92,9 @@ class Calculator
             "personal"      => $personal,
             "infinito"      => $infinito,
             "pointAfiliado" => $pointAfiliado,
-            "personalGlobal" => $personalGlobal
+            "personalGlobal" => $personalGlobal,
+            "residualTotal" => $residual + $pointAfiliado + $personalGlobal,
+            "currentPack"    => $compra + $personal
         );
     }
 

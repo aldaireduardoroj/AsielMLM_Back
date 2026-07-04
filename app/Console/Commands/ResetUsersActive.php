@@ -79,7 +79,7 @@ class ResetUsersActive extends Command
             $month = $oneMonthAgo->format('m');
 
 
-            $subject = "Resumen General de puntos y bonos del último mes - Imperio Global";
+            $subject = "Resumen General de puntos y bonos del último mes - Vithara";
 
             foreach ($userList as $key => $user) {
                 if( $user->is_admin ){
@@ -116,7 +116,10 @@ class ResetUsersActive extends Command
                                 "personal"      => $calculator->personal,
                                 "infinito"      => $calculator->infinito,
                                 "pointAfiliado" => $calculator->pointAfiliado,
-                                "personalGlobal" => $calculator->personalGlobal
+                                "personalGlobal" => $calculator->personalGlobal,
+                                "residualTotal" => $calculator->residualTotal ?? 0,
+                                "currentPack"    => $calculator->currentPack ?? 0,
+                                "residualVolumen" => 0
                             ),
                         ) );
                     }
@@ -136,14 +139,13 @@ class ResetUsersActive extends Command
                                 $json->pack,
                                 $json->points?->pointAfiliado ?? 0,
                                 $json->points?->patrocinio ?? 0,
-                                $json->points?->residual ?? 0,
-                                ( ($json->points?->pointAfiliado ?? 0)
-                                    + ($json->points?->patrocinio ?? 0)
-                                    + ($json->points?->residual ?? 0)
+                                $json->points?->residualTotal ?? 0,
+                                ( ($json->points?->patrocinio ?? 0)
+                                    + ($json->points?->residualTotal ?? 0)
                                 ),
                                 $json->points?->compra ?? 0,
                                 $json->points->personal ?? 0,
-                                $json->points->infinito ?? 0,
+                                $json->points->residualVolumen ?? 0,
                                 $json->totalPoint,
                                 $json->range
                             )
@@ -165,7 +167,7 @@ class ResetUsersActive extends Command
                         'month'=> $month,
                         'year'=> $año,
                         'jsonBody'=> serialize($jsonBody),
-                        'fileAttachment' => $nameFile
+                        'fileAttachment' => $nameFile,
                     ));
 
                 }else{
@@ -200,7 +202,10 @@ class ResetUsersActive extends Command
                             "personal"      => $calculator->personal,
                             "infinito"      => $calculator->infinito,
                             "pointAfiliado" => $calculator->pointAfiliado,
-                            "personalGlobal" => $calculator->personalGlobal
+                            "personalGlobal" => $calculator->personalGlobal,
+                            "residualTotal" => $calculator->residualTotal ?? 0,
+                            "currentPack"    => $calculator->currentPack ?? 0,
+                            "residualVolumen" => 0
                         ),
                         "totalPoint" => $calculatorTotalPoint
                     );

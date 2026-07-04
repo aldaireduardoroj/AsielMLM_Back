@@ -11,6 +11,7 @@
         <th>Bonos Totales</th>
         <th>Puntos Grupales</th>
         <th>Puntos por tu plan Actual</th>
+        <th>Bono residual por Volumen</th>
         <th>Puntos Totales</th>
         <th>Gran Total</th>
         <th>Rango</th>
@@ -30,7 +31,7 @@
             <td>{{ $user->bono_totales }}</td>
             <td>{{ $user->punto_grupales }}</td>
             <td>{{ $user->punto_plan_actual }}</td>
-            <td>{{ $user->punto_plan_actual }}</td>
+            <td>{{ $user->residualVolumen }}</td>
             <td>{{ $user->gran_total }}</td>
             <td>{{ $user->rango }}</td>
             <td>{{ $user->count_rango }}</td>

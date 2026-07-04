@@ -1397,109 +1397,95 @@ class UserController extends BaseController
                 return $this->sendError( "No se encontro ningun dato pasado");
             }
 
-            if(  $contentFile == null){
-                return $this->sendError( "No se encontro archivo");
+            $userList = unserialize($tempUser->jsonBody);
+
+            $paymentOrderPoints = PaymentOrderPoint::with(['paymentOrder'])->where('state' , true)->get();
+
+            $jsonBody = array();
+
+            foreach ($userList as $keyTemp => $_user){
+                $_user = (object) $_user;
+                $__user = User::with(['range.range'])->where("uuid" , $_user->uuid)->first();
+                $_user->payment = PaymentLog::with(['paymentOrder.pack' ])->where( "user_id" ,  $__user->id )
+                ->where( function ($query) {
+                    $query->where('state' , PaymentLog::PAGADO)
+                    ->orWhere('state' , PaymentLog::TERMINADO);
+                })
+                ->orderBy('created_at', 'desc')
+                ->first();
+
+                $paymentProductOrderPoints = PaymentProductOrderPoint::where("user_id" , $__user->id)->where("state" , true)->get();
+
+                $calculator = $this->calculator->points( $_user->uuid , $paymentOrderPoints , $paymentProductOrderPoints );
+                $calculatorPoint = $this->calculator->pointsTotal( $_user->uuid , $paymentOrderPoints , $paymentProductOrderPoints );
+
+                array_push( $jsonBody , (object) array(
+                    "fullname" => $__user->name,
+                    "email" => $_user->email,
+                    "uuid" => $_user->uuid,
+                    "pack" => $_user->payment?->paymentOrder?->pack?->title ?? "Sin Plan",
+                    "status" => $_user->payment == null ? "--" : ( $_user->payment->state == PaymentLog::PAGADO ? "Activo" : "Inactivo" ),
+                    "totalPoint" => $calculatorPoint,
+                    "range" => $__user->range == null ? "Sin Rango" : $__user->range->range->title,
+                    "points" => (object) array(
+                        "patrocinio"    => $calculator->patrocinio,
+                        "residual"      => $calculator->residual,
+                        "compra"        => $calculator->compra,
+                        "pointGroup"    => $calculator->pointGroup,
+                        "personal"      => $calculator->personal,
+                        "infinito"      => $calculator->infinito,
+                        "pointAfiliado" => $calculator->pointAfiliado,
+                        "personalGlobal" => $calculator->personalGlobal,
+                        "residualTotal" => $calculator->residualTotal ?? 0,
+                        "currentPack"    => $calculator->currentPack ?? 0,
+                        "residualVolumen" => 0
+                    ),
+                ) );
+            }
+
+            // crear archivo excel
+            $excelBody = array();
+
+            foreach ($jsonBody as $key => $json) {
+                array_push(
+                    $excelBody,
+                    array(
+                        $json->fullname,
+                        $json->uuid,
+                        $json->status,
+                        $json->pack,
+                        $json->points?->pointAfiliado ?? 0,
+                        $json->points?->patrocinio ?? 0,
+                        $json->points?->residualTotal ?? 0,
+                        ( ($json->points?->patrocinio ?? 0)
+                            + ($json->points?->residualTotal ?? 0)
+                        ),
+                        $json->points?->compra ?? 0,
+                        $json->points->personal ?? 0,
+                        $json->points->residualVolumen ?? 0,
+                        $json->totalPoint,
+                        $json->range
+                    )
+                );
             }
 
             $fecha = Carbon::now()->format('YmdHis');
             $nameFile = "reporte_usuarios_{$fecha}.xlsx";
 
-            $base64 = base64_encode($contentFile);
+            Excel::store(new ReportExcelUsers($excelBody), $nameFile, 'local');
+
+            $path = Storage::disk('local')->path($nameFile);
+            $fileContents = file_get_contents($path);
+
+            $base64 = base64_encode($fileContents);
+
+            Storage::disk('local')->delete($nameFile);
 
             return $this->sendResponse( [
                 'filename' => $nameFile,
                 'mime' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                 'base64' => $base64
             ] , '');
-
-            // $userList = User::with(['range.range'])->where("is_admin", false)->get();
-
-            // $paymentOrderPoints = PaymentOrderPoint::with(['paymentOrder'])->where('state' , true)->get();
-            // $jsonBody = array();
-            // foreach ($userList as $keyTemp => $_user){
-            //     if( $_user->is_admin ) continue;
-            //     $_user = (object) $_user;
-            //     $_user->payment = PaymentLog::with(['paymentOrder.pack' ])->where( "user_id" ,  $_user->id )
-            //     ->where( function ($query) {
-            //         $query->where('state' , PaymentLog::PAGADO)
-            //         ->orWhere('state' , PaymentLog::TERMINADO);
-            //     })
-            //     ->orderBy('created_at', 'desc')
-            //     ->first();
-
-            //     $paymentProductOrderPoints = PaymentProductOrderPoint::where("user_id" , $_user->id)->where("state" , true)->get();
-
-            //     $calculator = $this->calculator->points( $_user->uuid , $paymentOrderPoints , $paymentProductOrderPoints );
-            //     $calculatorPoint = $this->calculator->pointsTotal( $_user->uuid , $paymentOrderPoints , $paymentProductOrderPoints );
-
-            //     array_push( $jsonBody , (object) array(
-            //         "fullname" => $_user->name,
-            //         "email" => $_user->email,
-            //         "uuid" => $_user->uuid,
-            //         "pack" => $_user->payment?->paymentOrder?->pack?->title ?? "Sin Plan",
-            //         "status" => $_user->payment == null ? "--" : ( $_user->payment->state == PaymentLog::PAGADO ? "Activo" : "Inactivo" ),
-            //         "totalPoint" => $calculatorPoint,
-            //         "range" => $_user->range == null ? "Sin Rango" : $_user->range->range->title,
-            //         "points" => (object) array(
-            //             "patrocinio"    => $calculator->patrocinio,
-            //             "residual"      => $calculator->residual,
-            //             "compra"        => $calculator->compra,
-            //             "pointGroup"    => $calculator->pointGroup,
-            //             "personal"      => $calculator->personal,
-            //             "infinito"      => $calculator->infinito,
-            //             "pointAfiliado" => $calculator->pointAfiliado,
-            //             "personalGlobal" => $calculator->personalGlobal
-            //         ),
-            //     ) );
-            // }
-
-            // // crear archivo excel
-            // $excelBody = array();
-
-            // foreach ($jsonBody as $key => $json) {
-            //     array_push(
-            //         $excelBody,
-            //         array(
-            //             $json->fullname,
-            //             $json->uuid,
-            //             $json->status,
-            //             $json->pack,
-            //             $json->points?->pointAfiliado ?? 0,
-            //             $json->points?->patrocinio ?? 0,
-            //             $json->points?->residual ?? 0,
-            //             ( ($json->points?->pointAfiliado ?? 0)
-            //                 + ($json->points?->patrocinio ?? 0)
-            //                 + ($json->points?->residual ?? 0)
-            //                 + ( ($json->points?->personal ?? 0) * 0.02 )
-            //             ),
-            //             $json->points?->compra ?? 0,
-            //             $json->points->personal ?? 0,
-            //             $json->points->infinito ?? 0,
-            //             $json->totalPoint,
-            //             $json->range
-            //         )
-            //     );
-            // }
-
-            // // 1. Guardar Excel
-            // $fecha = Carbon::now()->format('YmdHis');
-            // $nameFile = "reporte_usuarios_{$fecha}.xlsx";
-            // $nameFilePath = "exports/".$nameFile;
-
-            // Excel::store(new ReportExcelUsers($excelBody), $nameFilePath , null, \Maatwebsite\Excel\Excel::XLSX);
-
-            // // Leer archivo y codificar en base64
-            // $fileContents = Storage::get($nameFilePath);
-            // $base64 = base64_encode($fileContents);
-
-            // // Eliminar el archivo después de codificar
-            // Storage::delete($nameFilePath);
-
-            // return $this->sendResponse( [
-            //     'filename' => $nameFile,
-            //     'mime' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            //     'base64' => $base64
-            // ] , '');
 
         }catch (Exception $e){
             DB::rollBack();
@@ -1531,31 +1517,6 @@ class UserController extends BaseController
             }
 
             $userModel = User::with(['file','range.range.file', 'paymentActive'])->find($user_id);
-            // return $this->sendError( "temp" , $tempUser);
-
-            // $payment = PaymentLog::with(['paymentOrder.pack'])
-            //         ->where( "user_id" ,  $user_id )
-            //         ->where( function ($query) {
-            //             $query->where('state' , PaymentLog::PAGADO)
-            //             ->orWhere('state' , PaymentLog::TERMINADO);
-            //         })
-            //         ->orderBy('created_at', 'desc')
-            //         ->first();
-
-            // $uuid = $userModel->uuid;
-
-            // $paymentOrderPoints = PaymentOrderPoint::with(['paymentOrder.paymentLog'])->where('state' , true)->get();
-            // $paymentProductOrderPoints = PaymentProductOrderPoint::where("user_id" , $user_id)->where("state" , true)->get();
-
-            // $ranges = Range::where("state" , true)
-            //     ->orderBy('points', 'asc')
-            //     ->get();
-
-            // $calculatorPoint = $this->calculator->points( $userModel->uuid , $paymentOrderPoints , $paymentProductOrderPoints);
-            // $totalPoint = $this->calculator->pointsTotal( $userModel->uuid , $paymentOrderPoints , $paymentProductOrderPoints);
-
-            // $userModel->payment = $payment;
-            // $userModel->podints = $calculatorPoint;
 
             // ---------------------------
 
@@ -1584,6 +1545,7 @@ class UserController extends BaseController
                 "code" => $userModel->uuid,
                 "fullname" => $userModel->name,
                 "address" => $userModel->address,
+                "status" => $_pointTemp['status'],
                 "patrocinio" => $_pointTemp['points']->patrocinio,
                 "residual" => $_pointTemp['points']->residual,
                 "compra"        => $_pointTemp['points']->compra,
@@ -1592,10 +1554,13 @@ class UserController extends BaseController
                 "infinito"      =>  $_pointTemp['points']->infinito,
                 "pointAfiliado" => $_pointTemp['points']->pointAfiliado,
                 "personalGlobal" => $_pointTemp['points']->personalGlobal,
+                "residualTotal" => $_pointTemp['points']?->residualTotal ?? 0,
+                "currentPack"    => $_pointTemp['points']?->currentPack ?? 0,
+                "residualVolumen" => $_pointTemp['points']?->residualVolumen ?? 0,
 
                 "totalPoint" => $_pointTemp['totalPoint'],
                 "range" => $_pointTemp['range'],
-                "plan" => $_pointTemp['pack']
+                "plan" => $_pointTemp['pack'],
             );
 
             // Renderizar vista PDF

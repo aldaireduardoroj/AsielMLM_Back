@@ -14,7 +14,7 @@ $schedule = app(Schedule::class);
 
 $schedule->command('app:reset-users-active')
     ->timezone('America/Lima')
-    ->monthlyOn(6, '00:10');
+    ->monthlyOn(4, '21:30');
 
 // $schedule->command('app:range-list-bulk')
 //     ->timezone('America/Lima')
@@ -44,7 +44,7 @@ $schedule->command('app:range-list-bulk')
         // Condición 2: Es el primer día del mes Y son las 00:00 hrs
         $initDayMonth = $now->day == 1 && $now->hour == 0;
 
-        // Si CUALQUIERA de las dos condiciones es verdadera, 
+        // Si CUALQUIERA de las dos condiciones es verdadera,
         // la tarea NO se ejecutará (return true = skip)
         return $initDayMonth;
     });

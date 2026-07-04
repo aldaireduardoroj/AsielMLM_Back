@@ -24,9 +24,9 @@ class ReportExcelUsers implements FromArray, WithHeadings, WithEvents
     public function headings(): array
     {
         return [
-            'Nombre y Apellidos', 
+            'Nombre y Apellidos',
             'ID usuario',
-            'Estado (Activo/desactivo)', 
+            'Estado (Activo/desactivo)',
             'Plan de Afiliación',
             'Bono personales de afiliados',
             'Bonos de Patrocinio',
@@ -34,7 +34,7 @@ class ReportExcelUsers implements FromArray, WithHeadings, WithEvents
             'Bonos Totales',
             'Puntos por tu plan Actual',
             'Puntos por compras personales',
-            'Bono Infinito',
+            'Bono residual por Volumen',
             'Gran Total',
             'Rango'
         ];
@@ -61,4 +61,5 @@ class ReportExcelUsers implements FromArray, WithHeadings, WithEvents
             }
         ];
     }
+
 }

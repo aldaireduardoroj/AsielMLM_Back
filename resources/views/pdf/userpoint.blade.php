@@ -53,49 +53,100 @@
 </head>
 <body>
     <main>
-        <h1>AsielNetwork - {{ $mes }} {{ $year }}</h1>
-        <h3 >{{ $address }}</h3>
-        <br><br>
+
         <table width="100%">
             <tbody>
                 <tr>
                     <td>
-                        <p style="color: #000000"><b>ID de usuario</b></p>
-                        <p style="color: #000000">{{ $code }}</p>
+                        <table width="100%">
+                            <tbody>
+                                <tr><td>Nombre de usuario: <b>{{ $fullname }}</b></td></tr>
+                                <tr><td>ID: <b>{{ $code }} - {{ $status }}</b></td></tr>
+                                <tr><td>Correo: <b>{{ $address }}</b></td></tr>
+                                <tr><td>Mes de cierre: <b>{{ $mes }} {{ $year }}</b></td></tr>
+                            </tbody>
+                        </table>
                     </td>
                     <td>
-                        <p style="color: #000000"><b>Nombres y Apellidos</b></p>
-                        <p style="color: #000000">{{ $fullname }}</p>
+                        <table width="100%">
+                            <tbody>
+                                <tr><td rowspan="2" align="right">
+                                    <h2>Vithara</h2>
+                                    <h2>Impulsa tu vida</h2>
+                                    <p style="text-align: right;">Negocio Multinivel</p>
+                                </td></tr>
+                            </tbody>
+                        </table>
                     </td>
                 </tr>
                 <tr>
-                    <td colspan="2" style="padding: 20px">
+                    <td colspan="2" style="padding: 10px">
                     </td>
                 </tr>
                 <tr>
                     <td>
-                        <b>Resultados de Puntos Personales</b>
+                        <p><b style="color: #888888;">Resumen de puntos y bonos logrados</b></p>
                         <hr>
                     </td>
+
+                </tr>
+                <tr>
                     <td>
-                        <b>Rango</b>
-                        <hr>
+                        <table width="100%">
+                            <tbody>
+                                <tr>
+                                    <td colspan="2">Plan Actual = <b>{{ $plan }}</b></td>
+                                </tr>
+                                <tr><td></td></tr>
+                                <tr>
+                                    <td>Puntos Patrocinio:</td>
+                                    <td><b>{{ $patrocinio }} puntos</b></td>
+                                </tr>
+                                <tr>
+                                    <td>Puntos Residuales:</td>
+                                    <td><b>{{ $residualTotal }} puntos</b></td>
+                                </tr>
+                                <tr>
+                                    <td>Puntos Grupales:</td>
+                                    <td><b>{{ $pointGroup }} puntos</b></td>
+                                </tr>
+                                <tr>
+                                    <td>Puntos por plan Actual:</td>
+                                    <td><b>{{ $currentPack }} puntos</b></td>
+                                </tr>
+                                <tr>
+                                    <td>Puntos Gran total</td>
+                                    <td><b>{{ $totalPoint }} puntos</b></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="padding: 10px">
                     </td>
                 </tr>
                 <tr>
                     <td>
-                        <p>Bonos Patrocinio = <b>{{ $patrocinio }}</b></p>
-                        <p>Bonos Residual = <b>{{ $residual + $pointAfiliado + $personalGlobal }}</b></p>
-                        <p>Bonos Totales = <b>{{ $patrocinio + $residual + $pointAfiliado + $personalGlobal }}</b></p>
-                        <p>Puntos Grupales = <b>{{ $pointGroup }}</b></p>
-                        <p>Puntos por plan Actual = <b>{{ $compra + $personal }}</b></p>
-                        <p>Puntos Totales = <b>{{ $pointGroup + $compra + $personal }}</b></p>
-                        <p>Gran total = <b>{{ $totalPoint }}</b></p>
+                        <b style="color: #888888;">Rango</b>
+                        <hr>
                     </td>
+                </tr>
+                <tr>
                     <td style="vertical-align: top;">
-                        <p><b>{{ $range }}</b></p>
-                        <p>Bono Infinito:  = <b>{{ $infinito }}</b></p>
-                        <p>Plan Actual = <b>{{ $plan }}</b></p>
+                        <table width="100%">
+                            <tbody>
+                                <tr>
+                                    <td>Rango:</td>
+                                    <td><b>{{ $range }}</b></td>
+                                </tr>
+                                <tr>
+                                    <td>Bono residual x volumen:</td>
+                                    <td><b>{{ $residualVolumen }} puntos</b></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
                     </td>
                 </tr>
             </tbody>
@@ -103,8 +154,9 @@
     </main>
     <footer>
         <hr>
-        <h2>Gerencia Comercial de AsielNetwork</h2>
-        <p style="text-align: center;">Ética de la Empresa, Cumple las reglas, protege tu código y asegura tu legado. ¡Tu esfuerzo vale la pena!</p>
+        <p>Las comisiones obtenidas se depositarán a la cuenta bancaria registrado del socio.</p>
+        <p>Vithara SAC</p>
+        <p>Vithara@email.com</p>
     </footer>
 </body>
 </html>
