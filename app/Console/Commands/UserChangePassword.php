@@ -81,11 +81,11 @@ class UserChangePassword extends Command
                 $_user = (object) $_user;
                 $childs = $this->listUserChildsDirect( $_user->uuid );
 
-                $userListFilter = array_filter($userList, fn($n) => in_array( $n->uuid, $childs));
+                $userListFilter = array_filter($userList, fn($n) => in_array( $n['uuid'], $childs));
 
-                $userListFilterMaxActive = array_filter($userListFilter, fn($n) => $n->status == 'Activo');
+                $userListFilterMaxActive = array_filter($userListFilter, fn($n) => $n['status'] == 'Activo');
 
-                $__u = User::where("uuid" , $_user->uuid)->first();
+                $__u = User::where("uuid" , $_user['uuid'] )->first();
                 
                 ReportUserNew::create(array(
                     "userId" => $user->id,
@@ -94,26 +94,26 @@ class UserChangePassword extends Command
                 ));
 
 
-                $childsAll = $this->listUserChilds( $_user->uuid , array() );
+                $childsAll = $this->listUserChilds( $_user['uuid'] , array() );
 
                 $userMax = array_reduce($childsAll, function($a, $b) {
-                    return ($a === null || $a->points->pointGroup > $b->points->pointGroup) ? $a : $b;
+                    return ($a === null || $a['points']->pointGroup > $b['points']->pointGroup) ? $a : $b;
                 });
 
                 $userMin = array_reduce($childsAll, function($a, $b) {
-                    return ($a === null || $a->points->pointGroup < $b->points->pointGroup) ? $a : $b;
+                    return ($a === null || $a['points']->pointGroup < $b['points']->pointGroup) ? $a : $b;
                 });
 
-                $_userMax = User::where("uuid" , $userMax->uuid)->first();
+                $_userMax = User::where("uuid" , $userMax['uuid'] )->first();
 
-                $_userMin = User::where("uuid" , $userMin->uuid)->first();
+                $_userMin = User::where("uuid" , $userMin['uuid'] )->first();
 
                 ReportUserGroup::create(array(
                     "userId" => $__u->id,
                     "maxGroupUserId" => $_userMax->id,
-                    "maxGroupPoint" => $_userMax->points->pointGroup,
+                    "maxGroupPoint" => $_userMax['points']->pointGroup,
                     "minGroupUserId" => $_userMin->id,
-                    "minGroupPoint" => $_userMin->points->pointGroup,
+                    "minGroupPoint" => $_userMin['points']->pointGroup,
                 ));
             }
 
