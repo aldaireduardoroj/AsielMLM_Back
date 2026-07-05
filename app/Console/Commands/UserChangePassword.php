@@ -96,11 +96,13 @@ class UserChangePassword extends Command
 
                 $childsAll = $this->listUserChilds( $_user->uuid , array() );
 
-                $userMax = array_reduce($childsAll, function($a, $b) {
+                $userListFilterAll = array_filter($userList, fn($n) => in_array( $n->uuid, $childs));
+
+                $userMax = array_reduce($userListFilterAll, function($a, $b) {
                     return ($a === null || $a->points->pointGroup > $b->points->pointGroup) ? $a : $b;
                 });
 
-                $userMin = array_reduce($childsAll, function($a, $b) {
+                $userMin = array_reduce($userListFilterAll, function($a, $b) {
                     return ($a === null || $a->points->pointGroup < $b->points->pointGroup) ? $a : $b;
                 });
 
@@ -161,10 +163,16 @@ class UserChangePassword extends Command
 
 
     public function listUserChildsDirect($uuid){
-        return PaymentOrderPoint::select("user_code", "sponsor_code", "type")
+        $pointOrders = PaymentOrderPoint::select("user_code", "sponsor_code", "type")
             ->where("sponsor_code", $uuid)
             ->where("type", PaymentOrderPoint::COMPRA)
             ->distinct()->get();
+        $_a = array();
+        foreach ($pointOrders as $key => $pointOrder){
+            array_push($_a, $pointOrder->user_code);
+        }
+        return $_a;
+
     }
 
 }
