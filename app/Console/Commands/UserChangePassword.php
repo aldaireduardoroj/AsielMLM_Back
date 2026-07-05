@@ -114,26 +114,28 @@ class UserChangePassword extends Command
                     $temp = UserEmailTemp::where("userId", $__u->id)
                     ->where("month", $oneMonthAgo->format('m'))
                     ->where("year", $oneMonthAgo->format('Y'))->first();
+                    if( $temp != null ){
+                        $tempUserCurrent = unserialize($temp->jsonBody);
+                        $tempUserCurrent['countChild'] = 0;
+                        if($reportUserNew != null) $tempUserCurrent['countChild'] = $reportUserNew->countChildren;
 
-                    $tempUserCurrent = unserialize($temp->jsonBody);
-                    $tempUserCurrent['countChild'] = 0;
-                    if($reportUserNew != null) $tempUserCurrent['countChild'] = $reportUserNew->countChildren;
+                        $tempUserCurrent['points']->bonoPionero = 0;
+                        if( $reportUserNew->countChildren >= 0 ){
+                            $tempUserCurrent['points']->bonoPionero = $reportUserNew->countChildren * 50;
+                        }
 
-                    $tempUserCurrent['points']->bonoPionero = 0;
-                    if( $reportUserNew->countChildren >= 0 ){
-                        $tempUserCurrent['points']->bonoPionero = $reportUserNew->countChildren * 50;
+                        $_range = Range::where("title", $tempUserCurrent["range"] )->first();
+
+                        $tempUserCurrent["bonoRange"] = $_range == null ? "0" : $_range->points;
+
+                        UserEmailTemp::where("userId", $__u->id)
+                        ->where("month", $oneMonthAgo->format('m'))
+                        ->where("year", $oneMonthAgo->format('Y'))
+                        ->update(
+                            array("jsonBody" => serialize($tempUserCurrent))
+                        );
                     }
-
-                    $_range = Range::where("title", $tempUserCurrent["range"] )->first();
-
-                    $tempUserCurrent["bonoRange"] = $_range == null ? "0" : $_range->points;
-
-                    UserEmailTemp::where("userId", $__u->id)
-                    ->where("month", $oneMonthAgo->format('m'))
-                    ->where("year", $oneMonthAgo->format('Y'))
-                    ->update(
-                        array("jsonBody" => serialize($tempUserCurrent))
-                    );
+                    
                 }
 
                 UserEmailTemp::where("userId", $userAdmin->id)
