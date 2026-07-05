@@ -1414,7 +1414,6 @@ class UserController extends BaseController
                         $_user->uuid,
                         $_user->status,
                         $_user->pack,
-                        $_user->points?->pointAfiliado ?? 0,
                         $_user->points?->patrocinio ?? 0,
                         $_user->points?->residualTotal ?? 0,
                         ( ($_user->points?->patrocinio ?? 0)
@@ -1510,7 +1509,7 @@ class UserController extends BaseController
                 "year" => $oneMonthAgo->format('Y'),
                 "code" => $userModel->uuid,
                 "fullname" => $userModel->name,
-                "address" => $userModel->address,
+                "email" => $userModel->email,
                 "status" => $_pointTemp['status'],
                 "patrocinio" => $_pointTemp['points']->patrocinio,
                 "residual" => $_pointTemp['points']->residual,

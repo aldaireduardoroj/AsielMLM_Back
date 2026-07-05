@@ -62,7 +62,7 @@
                             <tbody>
                                 <tr><td>Nombre de usuario: <b>{{ $fullname }}</b></td></tr>
                                 <tr><td>ID: <b>{{ $code }} - {{ $status }}</b></td></tr>
-                                <tr><td>Correo: <b>{{ $address }}</b></td></tr>
+                                <tr><td>Correo: <b>{{ $email }}</b></td></tr>
                                 <tr><td>Mes de cierre: <b>{{ $mes }} {{ $year }}</b></td></tr>
                             </tbody>
                         </table>

@@ -28,7 +28,6 @@ class ReportExcelUsers implements FromArray, WithHeadings, WithEvents
             'ID usuario',
             'Estado (Activo/desactivo)',
             'Plan de Afiliación',
-            'Bono personales de afiliados',
             'Bonos de Patrocinio',
             'Bonos Residual',
             'Bonos Totales',
