@@ -92,7 +92,7 @@ class UserChangePassword extends Command
                 $__u = User::where("uuid" , $_user->uuid)->first();
                 
                 ReportUserNew::create(array(
-                    "userId" => $user->id,
+                    "userId" => $__u->id,
                     "countChildren" => count($userListFilterMaxActive),
                     "codeUsers" => implode(",", array_map(fn($u) => $u->uuid, $userListFilterMaxActive) ),
                 ));
