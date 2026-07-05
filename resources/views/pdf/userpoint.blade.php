@@ -149,7 +149,12 @@
                             <tbody>
                                 <tr>
                                     <td>Rango:</td>
-                                    <td><b>{{ $range }}</b></td>
+                                    @if( $countRange != '' )
+                                        <td><b>{{ $range }} - 1</b></td>
+                                    @else
+                                        <td><b>{{ $range }}</b></td>
+                                    @endif
+                                    
                                 </tr>
                                 @if( $bonoRange != '0' )
                                 <tr>
