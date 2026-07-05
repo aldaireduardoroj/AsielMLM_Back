@@ -1420,6 +1420,7 @@ class UserController extends BaseController
                         ),
                         $_user->points?->compra ?? 0,
                         $_user->points->personal ?? 0,
+                        $_user->points->pointGroup ?? 0,
                         $_user->points->residualVolumen ?? 0,
                         $_user->totalPoint,
                         $_user->range

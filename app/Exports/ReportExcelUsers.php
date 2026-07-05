@@ -34,6 +34,7 @@ class ReportExcelUsers implements FromArray, WithHeadings, WithEvents
             'Bonos Totales',
             'Puntos por tu plan Actual',
             'Puntos por compras personales',
+            'Puntos grupales',
             'Bono residual por Volumen',
             'Gran Total',
             'Rango'
@@ -45,7 +46,7 @@ class ReportExcelUsers implements FromArray, WithHeadings, WithEvents
         return [
             AfterSheet::class => function(AfterSheet $event) {
                 // Aplica estilos a la cabecera (fila 1)
-                $event->sheet->getStyle('A1:M1')->applyFromArray([
+                $event->sheet->getStyle('A1:N1')->applyFromArray([
                     'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
                     'fill' => [
                         'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,

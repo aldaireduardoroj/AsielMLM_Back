@@ -74,21 +74,21 @@ class ReportUser extends Command
 
                 // report user group
 
-                $childs = $this->listUserChilds( $user->uuid , array() );
-                if( count( $childs ) > 0 ){
-                    $_userResult = array();
-                    foreach ($childs as $keyC => $child) {
-                        $pointCalculator = $this->calculator->points( $child->uuid , $paymentOrderPoints , array());
-                        $_userResult[$child->id] = $pointCalculator->pointGroup;
-                    }
-                    ReportUserGroup::create(array(
-                        "userId" => $user->id,
-                        "maxGroupUserId" => array_search( max($_userResult) , $_userResult ),
-                        "maxGroupPoint" => max($_userResult),
-                        "minGroupUserId" => array_search( min($_userResult) , $_userResult ),
-                        "minGroupPoint" => min($_userResult),
-                    ));
-                }
+                // $childs = $this->listUserChilds( $user->uuid , array() );
+                // if( count( $childs ) > 0 ){
+                //     $_userResult = array();
+                //     foreach ($childs as $keyC => $child) {
+                //         $pointCalculator = $this->calculator->points( $child->uuid , $paymentOrderPoints , array());
+                //         $_userResult[$child->id] = $pointCalculator->pointGroup;
+                //     }
+                //     ReportUserGroup::create(array(
+                //         "userId" => $user->id,
+                //         "maxGroupUserId" => array_search( max($_userResult) , $_userResult ),
+                //         "maxGroupPoint" => max($_userResult),
+                //         "minGroupUserId" => array_search( min($_userResult) , $_userResult ),
+                //         "minGroupPoint" => min($_userResult),
+                //     ));
+                // }
             }
 
 

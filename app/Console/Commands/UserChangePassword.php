@@ -51,113 +51,120 @@ class UserChangePassword extends Command
      */
     public function handle()
     {
-        $userList = User::with(['range.range'])->get();
+        try{
 
-        $paymentOrderPoints = PaymentOrderPoint::with(['paymentOrder'])->where('state' , true)->get();
+            $this->info("Inicio...........");
 
-        $fechaActual = Carbon::now();
+            $userList = User::with(['range.range'])->get();
 
-        // Obtener mes y año
-        $oneMonthAgo = $fechaActual->subMonth();
+            $paymentOrderPoints = PaymentOrderPoint::with(['paymentOrder'])->where('state' , true)->get();
 
-        // Obtener mes y año
-        $mes = $oneMonthAgo->translatedFormat('F'); // o 'F' para nombre del mes
-        $año = $oneMonthAgo->format('Y');
-        $month = $oneMonthAgo->format('m');
+            $fechaActual = Carbon::now();
 
+            // Obtener mes y año
+            $oneMonthAgo = $fechaActual->subMonth();
 
-        $subject = "Resumen General de puntos y bonos del último mes - Vithara";
+            // Obtener mes y año
+            $mes = $oneMonthAgo->translatedFormat('F'); // o 'F' para nombre del mes
+            $año = $oneMonthAgo->format('Y');
+            $month = $oneMonthAgo->format('m');
 
-        foreach ($userList as $key => $user) {
-            if( $user->is_admin ){
-                // ==== SOLO PARA EL ADMIN
-                $jsonBody = array();
-                foreach ($userList as $keyTemp => $_user){
-                    $_user = (object) $_user;
-                    $_user->payment = PaymentLog::with(['paymentOrder.pack' ])->where( "user_id" ,  $_user->id )
-                    ->where( function ($query) {
-                        $query->where('state' , PaymentLog::PAGADO)
-                        ->orWhere('state' , PaymentLog::TERMINADO);
-                    })
-                    ->orderBy('created_at', 'desc')
-                    ->first();
+            $userAdmin = User::where("is_admin" , true)->first();
 
-                    $paymentProductOrderPoints = PaymentProductOrderPoint::where("user_id" , $_user->id)->where("state" , true)->get();
+            $tempUser = UserEmailTemp::where("userId", $userAdmin->id)
+                ->where("month", $oneMonthAgo->format('m'))
+                ->where("year", $oneMonthAgo->format('Y'))->first();
 
-                    $calculator = $this->calculator->points( $_user->uuid , $paymentOrderPoints , $paymentProductOrderPoints );
-                    $calculatorPoint = $this->calculator->pointsTotal( $_user->uuid , $paymentOrderPoints , $paymentProductOrderPoints );
+            $userList = unserialize($tempUser->jsonBody);
 
-                    array_push( $jsonBody , (object) array(
-                        "fullname" => $_user->name,
-                        "email" => $_user->email,
-                        "uuid" => $_user->uuid,
-                        "pack" => $_user->payment?->paymentOrder?->pack?->title ?? "Sin Plan",
-                        "status" => $_user->payment == null ? "--" : ( $_user->payment->state == PaymentLog::PAGADO ? "Activo" : "Inactivo" ),
-                        "totalPoint" => $calculatorPoint,
-                        "range" => $_user->range == null ? "Sin Rango" : $_user->range->range->title,
-                        "points" => (object) array(
-                            "patrocinio"    => $calculator->patrocinio,
-                            "residual"      => $calculator->residual,
-                            "compra"        => $calculator->compra,
-                            "pointGroup"    => $calculator->pointGroup,
-                            "personal"      => $calculator->personal,
-                            "infinito"      => $calculator->infinito,
-                            "pointAfiliado" => $calculator->pointAfiliado,
-                            "personalGlobal" => $calculator->personalGlobal,
-                            "residualTotal" => $calculator->residualTotal ?? 0,
-                            "currentPack"    => $calculator->currentPack ?? 0,
-                            "residualVolumen" => 0
-                        ),
-                    ) );
-                }
+            foreach ($userList as $keyTemp => $_user){
+                $_user = (object) $_user;
+                $childs = $this->listUserChildsDirect( $_user->uuid );
+
+                $userListFilter = array_filter($userList, fn($n) => in_array( $n->uuid, $childs));
+
+                $userListFilterMaxActive = array_filter($userListFilter, fn($n) => $n->status == 'Activo');
+
+                $__u = User::where("uuid" , $_user->uuid)->first();
+                
+                ReportUserNew::create(array(
+                    "userId" => $user->id,
+                    "countChildren" => count($userListFilterMaxActive),
+                    "codeUsers" => implode(",", array_map(fn($u) => $u->uuid, $userListFilterMaxActive) ),
+                ));
 
 
+                $childsAll = $this->listUserChilds( $_user->uuid , array() );
 
-                // crear archivo excel
-                $excelBody = array();
+                $userMax = array_reduce($childsAll, function($a, $b) {
+                    return ($a === null || $a->points->pointGroup > $b->points->pointGroup) ? $a : $b;
+                });
 
-                foreach ($jsonBody as $key => $json) {
-                    array_push(
-                        $excelBody,
-                        array(
-                            $json->fullname,
-                            $json->uuid,
-                            $json->status,
-                            $json->pack,
-                            $json->points?->pointAfiliado ?? 0,
-                            $json->points?->patrocinio ?? 0,
-                            $json->points?->residualTotal ?? 0,
-                            ( ($json->points?->patrocinio ?? 0)
-                                + ($json->points?->residualTotal ?? 0)
-                            ),
-                            $json->points?->compra ?? 0,
-                            $json->points->personal ?? 0,
-                            $json->points->infinito ?? 0,
-                            $json->totalPoint,
-                            $json->range
-                        )
-                    );
-                }
+                $userMin = array_reduce($childsAll, function($a, $b) {
+                    return ($a === null || $a->points->pointGroup < $b->points->pointGroup) ? $a : $b;
+                });
 
-                // 1. Guardar Excel
-                $fecha = Carbon::now()->format('YmdHis');
-                $nameFile = "exports/reporte_usuarios_{$fecha}.xlsx";
+                $_userMax = User::where("uuid" , $userMax->uuid)->first();
 
-                Excel::store(new ReportExcelUsers($excelBody), $nameFile);
+                $_userMin = User::where("uuid" , $userMin->uuid)->first();
 
-                $userTemp = UserEmailTemp::create(array(
-                    'userId' => $user->id,
-                    'isAdmin' => $user->is_admin,
-                    'status' => UserEmailTemp::PENDIENTE,
-                    'email' => $user->email,
-                    'subject' => $subject . " ". strtoupper($mes) ."-".$año ,
-                    'month'=> $month,
-                    'year'=> $año,
-                    'jsonBody'=> serialize($jsonBody),
-                    'fileAttachment' => $nameFile,
+                ReportUserGroup::create(array(
+                    "userId" => $__u->id,
+                    "maxGroupUserId" => $_userMax->id,
+                    "maxGroupPoint" => $_userMax->points->pointGroup,
+                    "minGroupUserId" => $_userMin->id,
+                    "minGroupPoint" => $_userMin->points->pointGroup,
                 ));
             }
+
+            $this->info("Fin...........");
+        }catch (Exception $e){
+            $this->info("Error: {$e->getMessage()}");
         }
 
     }
+
+    private function loopTree( array $a_paymentOrderPoint , string $userCode )
+    {
+        $paymentOrderPoint = PaymentOrderPoint::select('user_code', 'sponsor_code')
+            ->distinct()
+            ->where("user_code" , 'like', $userCode)
+            ->whereIn("type", [ PaymentOrderPoint::COMPRA ])
+            ->where("payment" , true)
+            ->first();
+
+        if( $paymentOrderPoint != null ){
+            array_push( $a_paymentOrderPoint , $paymentOrderPoint  );
+
+            $a_paymentOrderPoint = $this->loopTree( $a_paymentOrderPoint , $paymentOrderPoint->sponsor_code );
+
+        }
+
+        return $a_paymentOrderPoint;
+    }
+
+    public function listUserChilds( $sponsorCode , $a_listUser )
+    {
+        $pointOrders = PaymentOrderPoint::select("user_code", "sponsor_code", "type")
+            ->where("sponsor_code", $sponsorCode)
+            ->where("type", PaymentOrderPoint::COMPRA)
+            ->distinct()->get();
+
+        foreach ($pointOrders as $key => $pointOrder) {
+            // $user = User::where("uuid", $pointOrder->user_code)->first();
+            // array_push($a_listUser, $user);
+            array_push($a_listUser, $pointOrder->user_code);
+            $a_listUser = $this->listUserChilds( $pointOrder->user_code , $a_listUser );
+        }
+        return $a_listUser;
+    }
+
+
+    public function listUserChildsDirect($uuid){
+        return PaymentOrderPoint::select("user_code", "sponsor_code", "type")
+            ->where("sponsor_code", $uuid)
+            ->where("type", PaymentOrderPoint::COMPRA)
+            ->distinct()->get();
+    };
+
 }
