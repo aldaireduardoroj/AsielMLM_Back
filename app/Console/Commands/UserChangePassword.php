@@ -109,15 +109,12 @@ class UserChangePassword extends Command
                         $_userResult[$child->uuid] = $child->points->pointGroup;
                     }
                     
-                    $_userMax = User::where("uuid" , $userMax->uuid)->first();
-
-                    $_userMin = User::where("uuid" , $userMin->uuid)->first();
 
                     ReportUserGroup::create(array(
                         "userId" => $__u->id,
-                        "maxGroupUserId" => $_userMax->id,
+                        "maxGroupUserId" => array_search( max($_userResult) , $_userResult ),
                         "maxGroupPoint" => max($_userResult),
-                        "minGroupUserId" => $_userMin->id,
+                        "minGroupUserId" => array_search( min($_userResult) , $_userResult ),
                         "minGroupPoint" => min($_userResult),
                     ));
                 }
