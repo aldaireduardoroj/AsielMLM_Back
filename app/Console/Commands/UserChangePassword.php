@@ -56,7 +56,7 @@ class UserChangePassword extends Command
     public function handle()
     {
         try{
-
+            DB::beginTransaction();
             $this->info("Inicio...........");
 
             $userList = User::with(['range.range'])->get();
@@ -100,32 +100,37 @@ class UserChangePassword extends Command
 
                 $childsAll = $this->listUserChilds( $_user->uuid , array() );
 
-                $userListFilterAll = array_filter($userList, fn($n) => in_array( $n->uuid, $childs));
+                $userListFilterAll = array_filter($userList, fn($n) => in_array( $n->uuid, $childsAll));
 
-                $userMax = array_reduce($userListFilterAll, function($a, $b) {
-                    return ($a === null || $a->points->pointGroup > $b->points->pointGroup) ? $a : $b;
-                });
+                if( count($userListFilterAll) > 0 ){
+                    $userMax = array_reduce($userListFilterAll, function($a, $b) {
+                        return ($a === null || $a->points->pointGroup > $b->points->pointGroup) ? $a : $b;
+                    });
+                    dump($userMax);
+                    $userMin = array_reduce($userListFilterAll, function($a, $b) {
+                        return ($a === null || $a->points->pointGroup < $b->points->pointGroup) ? $a : $b;
+                    });
 
-                $userMin = array_reduce($userListFilterAll, function($a, $b) {
-                    return ($a === null || $a->points->pointGroup < $b->points->pointGroup) ? $a : $b;
-                });
+                    $_userMax = User::where("uuid" , $userMax->uuid)->first();
 
-                $_userMax = User::where("uuid" , $userMax->uuid)->first();
+                    $_userMin = User::where("uuid" , $userMin->uuid)->first();
 
-                $_userMin = User::where("uuid" , $userMin->uuid)->first();
+                    ReportUserGroup::create(array(
+                        "userId" => $__u->id,
+                        "maxGroupUserId" => $_userMax->id,
+                        "maxGroupPoint" => $_userMax->points->pointGroup,
+                        "minGroupUserId" => $_userMin->id,
+                        "minGroupPoint" => $_userMin->points->pointGroup,
+                    ));
+                }
 
-                ReportUserGroup::create(array(
-                    "userId" => $__u->id,
-                    "maxGroupUserId" => $_userMax->id,
-                    "maxGroupPoint" => $_userMax->points->pointGroup,
-                    "minGroupUserId" => $_userMin->id,
-                    "minGroupPoint" => $_userMin->points->pointGroup,
-                ));
+                
             }
-
+            DB::commit();
             $this->info("Fin...........");
         }catch (Exception $e){
-            $this->info("Error: {$e->getMessage()}");
+            DB::rollBack();
+            $this->info("Error --: {$e->getMessage()}");
         }
 
     }
