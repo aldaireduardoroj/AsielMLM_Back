@@ -59,8 +59,6 @@ class UserChangePassword extends Command
             DB::beginTransaction();
             $this->info("Inicio...........");
 
-            $userList = User::with(['range.range'])->get();
-
             $paymentOrderPoints = PaymentOrderPoint::with(['paymentOrder'])->where('state' , true)->get();
 
             $fechaActual = Carbon::now();
@@ -83,41 +81,100 @@ class UserChangePassword extends Command
 
             foreach ($userList as $keyTemp => $_user){
                 $_user = (object) $_user;
-                $childs = $this->listUserChildsDirect( $_user->uuid );
-
-                $userListFilter = array_filter($userList, fn($n) => in_array( $n->uuid, $childs));
-
-                $userListFilterMaxActive = array_filter($userListFilter, fn($n) => $n->status == 'Activo');
 
                 $__u = User::where("uuid" , $_user->uuid)->first();
-                
-                ReportUserNew::create(array(
-                    "userId" => $__u->id,
-                    "countChildren" => count($userListFilterMaxActive),
-                    "codeUsers" => implode(",", array_map(fn($u) => $u->uuid, $userListFilterMaxActive) ),
-                ));
 
+                $userList[$keyTemp]->countChild = 0;
 
-                $childsAll = $this->listUserChilds( $_user->uuid , array() );
+                $reportUserNew = ReportUserNew::where("userId", $__u->id)->first();
 
-                $userListFilterAll = array_filter($userList, fn($n) => in_array( $n->uuid, $childsAll));
-
-                if( count($userListFilterAll) > 0 ){
-                    $_userResult = array();
-                    foreach ($userListFilterAll as $keyC => $child) {
-                        $child = (object) $child;
-                        $_userResult[$child->uuid] = $child->points->pointGroup;
+                if($reportUserNew != null){
+                    $userList[$keyTemp]->countChild = $reportUserNew->countChildren;
+                    $userList[$keyTemp]->points->bonoPionero = 0;
+                    if( $reportUserNew->countChildren >= 0 ){
+                        $userList[$keyTemp]->points->bonoPionero = $reportUserNew->countChildren * 50;
                     }
-                    
-
-                    ReportUserGroup::create(array(
-                        "userId" => $__u->id,
-                        "maxGroupUserId" => array_search( max($_userResult) , $_userResult ),
-                        "maxGroupPoint" => max($_userResult),
-                        "minGroupUserId" => array_search( min($_userResult) , $_userResult ),
-                        "minGroupPoint" => min($_userResult),
-                    ));
                 }
+
+                $userList[$keyTemp]->points->globalPatrocinio = 0;
+
+                if( $_user->uuid == '29374769' ) $userList[$keyTemp]->points->globalPatrocinio = 2.6;
+                if( $_user->uuid == '45630507' ) $userList[$keyTemp]->points->globalPatrocinio = 2.6;
+                if( $_user->uuid == '40422044' ) $userList[$keyTemp]->points->globalPatrocinio = 2.6;
+                if( $_user->uuid == '09252484' ) $userList[$keyTemp]->points->globalPatrocinio = 2.6;
+                if( $_user->uuid == '43486540' ) $userList[$keyTemp]->points->globalPatrocinio = 2.6;
+                if( $_user->uuid == '45496848' ) $userList[$keyTemp]->points->globalPatrocinio = 2.6;
+                if( $_user->uuid == '29250251' ) $userList[$keyTemp]->points->globalPatrocinio = 2.6;
+
+                $_range = Range::where("title", $userList[$keyTemp]->range )->first();
+
+                $userList[$keyTemp]->bonoRange = $_range == null ? "0" : $_range->points;
+
+                if( !$__u->is_admin ){
+                    $temp = UserEmailTemp::where("userId", $__u->id)
+                    ->where("month", $oneMonthAgo->format('m'))
+                    ->where("year", $oneMonthAgo->format('Y'))->first();
+
+                    $tempUserCurrent = unserialize($temp->jsonBody);
+                    $tempUserCurrent['countChild'] = 0;
+                    if($reportUserNew != null) $tempUserCurrent['countChild'] = $reportUserNew->countChildren;
+
+                    $tempUserCurrent['points']->bonoPionero = 0;
+                    if( $reportUserNew->countChildren >= 0 ){
+                        $tempUserCurrent['points']->bonoPionero = $reportUserNew->countChildren * 50;
+                    }
+
+                    $_range = Range::where("title", $tempUserCurrent["range"] )->first();
+
+                    $tempUserCurrent["bonoRange"] = $_range == null ? "0" : $_range->points;
+
+                    UserEmailTemp::where("userId", $__u->id)
+                    ->where("month", $oneMonthAgo->format('m'))
+                    ->where("year", $oneMonthAgo->format('Y'))
+                    ->update(
+                        array("jsonBody" => serialize($tempUserCurrent))
+                    );
+                }
+
+                UserEmailTemp::where("userId", $userAdmin->id)
+                    ->where("month", $oneMonthAgo->format('m'))
+                    ->where("year", $oneMonthAgo->format('Y'))
+                    ->update(
+                        array("jsonBody" => serialize($userList))
+                    );
+                
+                // $childs = $this->listUserChildsDirect( $_user->uuid );
+
+                // $userListFilter = array_filter($userList, fn($n) => in_array( $n->uuid, $childs));
+
+                // $userListFilterMaxActive = array_filter($userListFilter, fn($n) => $n->status == 'Activo');
+                
+                // ReportUserNew::create(array(
+                //     "userId" => $__u->id,
+                //     "countChildren" => count($userListFilterMaxActive),
+                //     "codeUsers" => implode(",", array_map(fn($u) => $u->uuid, $userListFilterMaxActive) ),
+                // ));
+
+
+                // $childsAll = $this->listUserChilds( $_user->uuid , array() );
+
+                // $userListFilterAll = array_filter($userList, fn($n) => in_array( $n->uuid, $childsAll));
+
+                // if( count($userListFilterAll) > 0 ){
+                //     $_userResult = array();
+                //     foreach ($userListFilterAll as $keyC => $child) {
+                //         $child = (object) $child;
+                //         $_userResult[$child->uuid] = $child->points->pointGroup;
+                //     }
+                    
+                //     ReportUserGroup::create(array(
+                //         "userId" => $__u->id,
+                //         "maxGroupUserId" => array_search( max($_userResult) , $_userResult ),
+                //         "maxGroupPoint" => max($_userResult),
+                //         "minGroupUserId" => array_search( min($_userResult) , $_userResult ),
+                //         "minGroupPoint" => min($_userResult),
+                //     ));
+                // }
 
                 
             }

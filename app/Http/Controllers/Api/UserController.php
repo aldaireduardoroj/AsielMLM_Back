@@ -1375,7 +1375,7 @@ class UserController extends BaseController
     public function exportExcelFinance(Request $request)
     {
         try {
-
+            $user_id = Auth::id();
             $fechaActual = Carbon::now();
 
             // Obtener mes y año
@@ -1385,7 +1385,9 @@ class UserController extends BaseController
 
             $oneMonthAgo = $fechaActual->subMonth();
 
-            $userAdmin = User::where("is_admin" , true)->first();
+            $userAdmin = User::where("id" , $user_id)->first();
+
+            if( !$userAdmin->is_admin ) $this->sendError( "No tienes permisos para esta funcion." );
 
             $tempUser = UserEmailTemp::where("userId", $userAdmin->id)
                 ->where("month", $oneMonthAgo->format('m'))
@@ -1421,9 +1423,12 @@ class UserController extends BaseController
                         $_user->points?->compra ?? 0,
                         $_user->points->personal ?? 0,
                         $_user->points->pointGroup ?? 0,
-                        $_user->points->residualVolumen ?? 0,
+                        $_user->range,
                         $_user->totalPoint,
-                        $_user->range
+                        $_user->points->residualVolumen ?? 0,
+                        $_user->countChild ?? 0,
+                        $_user->points?->bonoPionero ?? 0,
+                        $_user->points?->globalPatrocinio ?? 0
                     )
                 );
             }
@@ -1522,6 +1527,12 @@ class UserController extends BaseController
                 "totalPoint" => $_pointTemp['totalPoint'],
                 "range" => $_pointTemp['range'],
                 "plan" => $_pointTemp['pack'],
+
+                "globalPatrocinio" => $_pointTemp['points']?->globalPatrocinio ?? 0,
+                "bonoPionero" => $_pointTemp['points']?->bonoPionero ?? 0,
+
+                "countRange" => $_pointTemp['range'] == "Sin Rango" ? "" : "1",
+                "bonoRange" => $_pointTemp['bonoRange']
             );
 
             // Renderizar vista PDF

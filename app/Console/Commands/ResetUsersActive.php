@@ -146,9 +146,11 @@ class ResetUsersActive extends Command
                                 $json->points?->compra ?? 0,
                                 $json->points->personal ?? 0,
                                 $json->points->pointGroup ?? 0,
-                                $json->points->residualVolumen ?? 0,
+                                $json->range,
                                 $json->totalPoint,
-                                $json->range
+                                $json->points->residualVolumen ?? 0,
+                                0,
+                                0
                             )
                         );
                     }

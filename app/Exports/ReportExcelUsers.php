@@ -35,9 +35,12 @@ class ReportExcelUsers implements FromArray, WithHeadings, WithEvents
             'Puntos por tu plan Actual',
             'Puntos por compras personales',
             'Puntos grupales',
-            'Bono residual por Volumen',
+            'Rango',
             'Gran Total',
-            'Rango'
+            'Bono residual por Volumen',
+            'Cantidad hijos nuevos activos',
+            'Bono Pionero',
+            'Fondo Global de Patrocinio'
         ];
     }
 

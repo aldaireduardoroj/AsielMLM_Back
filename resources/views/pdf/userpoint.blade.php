@@ -118,6 +118,17 @@
                                     <td>Puntos Gran total</td>
                                     <td><b>{{ $totalPoint }} puntos</b></td>
                                 </tr>
+                                <tr>
+                                    <td colspan="2" style="padding: 10px"></td>
+                                </tr>
+                                <tr>
+                                    <td>Puntos Global de Patrocinio</td>
+                                    <td><b>{{ $globalPatrocinio }} puntos</b></td>
+                                </tr>
+                                <tr>
+                                    <td>Puntos Pionero</td>
+                                    <td><b>{{ $bonoPionero }} puntos</b></td>
+                                </tr>
                             </tbody>
                         </table>
                     </td>
@@ -140,6 +151,12 @@
                                     <td>Rango:</td>
                                     <td><b>{{ $range }}</b></td>
                                 </tr>
+                                @if( $bonoRange != '0' )
+                                <tr>
+                                    <td>Bono por rango:</td>
+                                    <td><b>{{ $bonoRange }} PEN</b></td>
+                                </tr>
+                                @endif
                                 <tr>
                                     <td>Bono residual x volumen:</td>
                                     <td><b>{{ $residualVolumen }} puntos</b></td>
