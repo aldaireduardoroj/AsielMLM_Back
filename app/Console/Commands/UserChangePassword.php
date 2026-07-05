@@ -165,6 +165,6 @@ class UserChangePassword extends Command
             ->where("sponsor_code", $uuid)
             ->where("type", PaymentOrderPoint::COMPRA)
             ->distinct()->get();
-    };
+    }
 
 }
