@@ -16,6 +16,10 @@ use App\Models\PaymentLog;
 use App\Models\UserEmailTemp;
 use App\Models\PaymentProductOrder;
 
+use App\Models\ReportUserNew;
+use App\Models\ReportUserGroup;
+
+
 use Exception;
 
 use Carbon\Carbon;
