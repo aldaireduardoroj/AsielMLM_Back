@@ -101,11 +101,12 @@ class UserChangePassword extends Command
                 $childsAll = $this->listUserChilds( $_user->uuid , array() );
 
                 $userListFilterAll = array_filter($userList, fn($n) => in_array( $n->uuid, $childsAll));
-
+                dump($childsAll);
                 if( count($userListFilterAll) > 0 ){
                     $userMax = array_reduce($userListFilterAll, function($a, $b) {
                         return ($a === null || $a->points->pointGroup > $b->points->pointGroup) ? $a : $b;
                     });
+                    dump($userListFilterAll);
                     dump($userMax);
                     $userMin = array_reduce($userListFilterAll, function($a, $b) {
                         return ($a === null || $a->points->pointGroup < $b->points->pointGroup) ? $a : $b;
