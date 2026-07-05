@@ -1402,72 +1402,32 @@ class UserController extends BaseController
             $paymentOrderPoints = PaymentOrderPoint::with(['paymentOrder'])->where('state' , true)->get();
 
             $jsonBody = array();
-
+            $excelBody = array();
             foreach ($userList as $keyTemp => $_user){
                 $_user = (object) $_user;
-                $__user = User::with(['range.range'])->where("uuid" , $_user->uuid)->first();
-                $_user->payment = PaymentLog::with(['paymentOrder.pack' ])->where( "user_id" ,  $__user->id )
-                ->where( function ($query) {
-                    $query->where('state' , PaymentLog::PAGADO)
-                    ->orWhere('state' , PaymentLog::TERMINADO);
-                })
-                ->orderBy('created_at', 'desc')
-                ->first();
-
-                $paymentProductOrderPoints = PaymentProductOrderPoint::where("user_id" , $__user->id)->where("state" , true)->get();
-
-                $calculator = $this->calculator->points( $_user->uuid , $paymentOrderPoints , $paymentProductOrderPoints );
-                $calculatorPoint = $this->calculator->pointsTotal( $_user->uuid , $paymentOrderPoints , $paymentProductOrderPoints );
-
-                array_push( $jsonBody , (object) array(
-                    "fullname" => $__user->name,
-                    "email" => $_user->email,
-                    "uuid" => $_user->uuid,
-                    "pack" => $_user->payment?->paymentOrder?->pack?->title ?? "Sin Plan",
-                    "status" => $_user->payment == null ? "--" : ( $_user->payment->state == PaymentLog::PAGADO ? "Activo" : "Inactivo" ),
-                    "totalPoint" => $calculatorPoint,
-                    "range" => $__user->range == null ? "Sin Rango" : $__user->range->range->title,
-                    "points" => (object) array(
-                        "patrocinio"    => $calculator->patrocinio,
-                        "residual"      => $calculator->residual,
-                        "compra"        => $calculator->compra,
-                        "pointGroup"    => $calculator->pointGroup,
-                        "personal"      => $calculator->personal,
-                        "infinito"      => $calculator->infinito,
-                        "pointAfiliado" => $calculator->pointAfiliado,
-                        "personalGlobal" => $calculator->personalGlobal,
-                        "residualTotal" => $calculator->residualTotal ?? 0,
-                        "currentPack"    => $calculator->currentPack ?? 0,
-                        "residualVolumen" => 0
-                    ),
-                ) );
-            }
-
-            // crear archivo excel
-            $excelBody = array();
-
-            foreach ($jsonBody as $key => $json) {
                 array_push(
                     $excelBody,
                     array(
-                        $json->fullname,
-                        $json->uuid,
-                        $json->status,
-                        $json->pack,
-                        $json->points?->pointAfiliado ?? 0,
-                        $json->points?->patrocinio ?? 0,
-                        $json->points?->residualTotal ?? 0,
-                        ( ($json->points?->patrocinio ?? 0)
-                            + ($json->points?->residualTotal ?? 0)
+                        $_user->fullname,
+                        $_user->uuid,
+                        $_user->status,
+                        $_user->pack,
+                        $_user->points?->pointAfiliado ?? 0,
+                        $_user->points?->patrocinio ?? 0,
+                        $_user->points?->residualTotal ?? 0,
+                        ( ($_user->points?->patrocinio ?? 0)
+                            + ($_user->points?->residualTotal ?? 0)
                         ),
-                        $json->points?->compra ?? 0,
-                        $json->points->personal ?? 0,
-                        $json->points->residualVolumen ?? 0,
-                        $json->totalPoint,
-                        $json->range
+                        $_user->points?->compra ?? 0,
+                        $_user->points->personal ?? 0,
+                        $_user->points->residualVolumen ?? 0,
+                        $_user->totalPoint,
+                        $_user->range
                     )
                 );
             }
+
+            // crear archivo excel
 
             $fecha = Carbon::now()->format('YmdHis');
             $nameFile = "reporte_usuarios_{$fecha}.xlsx";
