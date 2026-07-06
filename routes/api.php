@@ -73,7 +73,7 @@ Route::prefix('v1')->group(function () {
         Route::post('pack/state/{packId}', [PackController::class, 'changeStatus']);
 
         // ********** OptionController
-        Route::get('option/search', [OptionController::class, 'search']);
+        // Route::get('option/search', [OptionController::class, 'search']);
         Route::post('option/truncate', [OptionController::class, 'truncate']);
         Route::post('option/create', [OptionController::class, 'create']);
         Route::post('option/reboot', [OptionController::class, 'reboot']);
