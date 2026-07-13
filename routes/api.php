@@ -156,6 +156,9 @@ Route::prefix('v1')->group(function () {
 
         // ********** PaymentOrder
         Route::post('payment/offline', [PaymentOrderController::class, 'paymentOffline']);
+
+        Route::get('users/features', [UserController::class, 'features']);
+        Route::get('users/report-chart', [UserController::class, 'reportChart']);
     });
 
     Route::post('users/invited-verify', [UserController::class, 'invitedVerify']);

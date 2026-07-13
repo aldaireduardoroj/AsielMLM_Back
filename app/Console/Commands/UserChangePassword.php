@@ -135,7 +135,7 @@ class UserChangePassword extends Command
                             array("jsonBody" => serialize($tempUserCurrent))
                         );
                     }
-                    
+
                 }
 
                 UserEmailTemp::where("userId", $userAdmin->id)
@@ -144,13 +144,13 @@ class UserChangePassword extends Command
                     ->update(
                         array("jsonBody" => serialize($userList))
                     );
-                
+
                 // $childs = $this->listUserChildsDirect( $_user->uuid );
 
                 // $userListFilter = array_filter($userList, fn($n) => in_array( $n->uuid, $childs));
 
                 // $userListFilterMaxActive = array_filter($userListFilter, fn($n) => $n->status == 'Activo');
-                
+
                 // ReportUserNew::create(array(
                 //     "userId" => $__u->id,
                 //     "countChildren" => count($userListFilterMaxActive),
@@ -168,7 +168,7 @@ class UserChangePassword extends Command
                 //         $child = (object) $child;
                 //         $_userResult[$child->uuid] = $child->points->pointGroup;
                 //     }
-                    
+
                 //     ReportUserGroup::create(array(
                 //         "userId" => $__u->id,
                 //         "maxGroupUserId" => array_search( max($_userResult) , $_userResult ),
@@ -178,7 +178,7 @@ class UserChangePassword extends Command
                 //     ));
                 // }
 
-                
+
             }
             DB::commit();
             $this->info("Fin...........");
@@ -216,8 +216,6 @@ class UserChangePassword extends Command
             ->distinct()->get();
 
         foreach ($pointOrders as $key => $pointOrder) {
-            // $user = User::where("uuid", $pointOrder->user_code)->first();
-            // array_push($a_listUser, $user);
             array_push($a_listUser, $pointOrder->user_code);
             $a_listUser = $this->listUserChilds( $pointOrder->user_code , $a_listUser );
         }

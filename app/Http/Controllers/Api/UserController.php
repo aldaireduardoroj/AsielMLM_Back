@@ -236,7 +236,6 @@ class UserController extends BaseController
 
             $paymentOrderPoints = PaymentOrderPoint::with(['paymentOrder'])->where('state' , true)->get();
 
-
             $paymentOrderPoint = PaymentOrderPoint::select('user_code','sponsor_code','type','payment', 'created_at')
                 ->where("type" , PaymentOrderPoint::COMPRA )
                 ->distinct()->orderBy('created_at', 'desc')->get();
@@ -2093,6 +2092,95 @@ class UserController extends BaseController
         }
     }
 
+    public function features(Request $request)
+    {
+        try {
+            $limit = $this->limit;
+            if( $request->has('limit') ) $limit = intval( $request->query('limit') );
+
+            $userId = Auth::id();
+            $userModel = User::find($userId);
+
+            $a_listUser = $this->listUserChilds($userModel->uuid, array() );
+
+            $paymentOrderPoints = PaymentOrderPoint::with(['paymentOrder'])->where('state' , true)->get();
+            $a_users= array();
+            foreach ($a_listUser as $key => $u) {
+                $_user = User::where("uuid", $u->uuid)->first();
+                $paymentProductOrderPoints = PaymentProductOrderPoint::where("user_id" , $_user->id)->where("state" , true)->get();
+                $points = $this->calculator->points( $u->uuid , $paymentOrderPoints , $paymentProductOrderPoints );
+                $a_users[$u->uuid] = $points->pointGroup;
+            }
+            arsort($a_users);
+            // return $this->sendResponse( $a_users, 'Features');
+            // var_dump($a_users);
+
+            $response = array();
+            $count = 0;
+            foreach ($a_users as $uuid => $point)
+            {
+                $count++;
+                $_user = User::with(['file', 'range.range'])->where("uuid", $uuid)->first();
+                $_user->pointGroup = $point;
+                array_push($response, $_user);
+                if( $count == $limit ) break;
+            }
+
+            return $this->sendResponse( $response, 'Features');
+
+        } catch (\Throwable $th) {
+
+            return $this->sendError( $th->getMessage());
+        }
+    }
+
+    public function reportChart(Request $request)
+    {
+        try {
+
+            $userId = Auth::id();
+            $userModel = User::find($userId);
+
+            $a_listUser = $this->listUserChilds($userModel->uuid, array() );
+
+            $userFilterLevel1 = array_filter($a_listUser, fn($n) => $n->level == 1);
+            $userFilterLevel2 = array_filter($a_listUser, fn($n) => $n->level == 2);
+            $userFilterLevel3 = array_filter($a_listUser, fn($n) => $n->level == 3);
+
+            // $paymentOrderPoints = PaymentOrderPoint::with(['paymentOrder'])->where('state' , true)->get();
+            // $a_users= array();
+            // foreach ($a_listUser as $key => $uuid) {
+            //     $_user = User::where("uuid", $uuid)->first();
+            //     $paymentProductOrderPoints = PaymentProductOrderPoint::where("user_id" , $_user->id)->where("state" , true)->get();
+            //     $points = $this->calculator->points( $uuid , $paymentOrderPoints , $paymentProductOrderPoints );
+            //     $a_users[$uuid] = $points->pointGroup;
+            // }
+            // rsort($a_users);
+
+            $response = array(
+                "total" => count($a_listUser),
+                "level1" => count($userFilterLevel1),
+                "level2" => count($userFilterLevel2),
+                "level3" => count($userFilterLevel3)
+            );
+            // $count = 0;
+            // foreach ($a_listUser as $uuid => $point)
+            // {
+            //     $count++;
+            //     $_user = User::with(['file', 'range.range'])->where("uuid", $uuid)->first();
+            //     $_user->pointGroup = $point;
+            //     array_push($response, );
+            //     if( $count == $limit ) break;
+            // }
+
+            return $this->sendResponse( (object) $response, 'reportChart');
+
+        } catch (\Throwable $th) {
+
+            return $this->sendError( $th->getMessage());
+        }
+    }
+
     private function loopTree( array $a_paymentOrderPoint , string $userCode )
     {
         $paymentOrderPoint = PaymentOrderPoint::select('user_code', 'sponsor_code')
@@ -2110,6 +2198,36 @@ class UserController extends BaseController
         }
 
         return $a_paymentOrderPoint;
+    }
+
+    private function listUserChilds( $sponsorCode , $a_listUser , $level = 0 )
+    {
+        $pointOrders = PaymentOrderPoint::select("user_code", "sponsor_code", "type")
+            ->where("sponsor_code", $sponsorCode)
+            ->where("type", PaymentOrderPoint::COMPRA)
+            ->distinct()->get();
+
+        $level++;
+
+        foreach ($pointOrders as $key => $pointOrder) {
+            array_push($a_listUser, (object) array( "uuid" => $pointOrder->user_code, "level" => $level ));
+
+            $a_listUser = $this->listUserChilds( $pointOrder->user_code , $a_listUser );
+        }
+        return $a_listUser;
+    }
+
+    private function listUserChildsDirect($uuid){
+        $pointOrders = PaymentOrderPoint::select("user_code", "sponsor_code", "type")
+            ->where("sponsor_code", $uuid)
+            ->where("type", PaymentOrderPoint::COMPRA)
+            ->distinct()->get();
+        $_a = array();
+        foreach ($pointOrders as $key => $pointOrder){
+            array_push($_a, $pointOrder->user_code);
+        }
+        return $_a;
+
     }
 
 }
