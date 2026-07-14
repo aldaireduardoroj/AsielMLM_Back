@@ -16,7 +16,7 @@ class StorageController extends BaseController{
         try {
 
             $validator = Validator::make( $request->all() , [
-                'file' => 'required|file|mimes:png,jpg,jpeg|max:2048',
+                'file' => 'required|file|mimes:png,jpg,jpeg|max:3072',
                 'folder'    => 'required',
             ]);
 
